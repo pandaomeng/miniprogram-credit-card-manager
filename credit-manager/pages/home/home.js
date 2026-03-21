@@ -1,15 +1,6 @@
 const storage = require('../../utils/storage.js');
 const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
 
-function sortCardsForHome(list) {
-  return list.slice().sort((a, b) => {
-    if (a.repaid_active !== b.repaid_active) {
-      return a.repaid_active ? 1 : -1;
-    }
-    return a.days_until_due - b.days_until_due;
-  });
-}
-
 Page({
   data: {
     statusBarHeight: 44,
@@ -44,8 +35,7 @@ Page({
 
   refresh() {
     const raw = storage.getCards();
-    const cards = sortCardsForHome(raw.map(enrichCard));
-    this.setData({ cards });
+    this.setData({ cards: raw.map(enrichCard) });
   },
 
   onToggleRepaid(e) {
