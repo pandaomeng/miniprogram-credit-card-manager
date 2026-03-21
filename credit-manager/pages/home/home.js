@@ -4,10 +4,38 @@ const {
   currentYm,
   normalizeYm,
   ymDisplayLabel,
-  ymFromDatePickerValue,
   migrateRepaidMonths,
 } = require('../../utils/card-helpers.js');
 const { STORAGE_HIDE_REPAID, STORAGE_VIEW_YM } = require('../../utils/constants.js');
+
+const YM_PICK_START_YEAR = 2018;
+const YM_PICK_END_YEAR = 2037;
+
+const YM_MULTI_RANGE = (() => {
+  const years = [];
+  for (let y = YM_PICK_START_YEAR; y <= YM_PICK_END_YEAR; y += 1) {
+    years.push(`${y}年`);
+  }
+  const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+  return [years, months];
+})();
+
+function ymToMultiIndex(ym) {
+  const n = normalizeYm(ym);
+  const parts = n.split('-');
+  let y = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  y = Math.max(YM_PICK_START_YEAR, Math.min(YM_PICK_END_YEAR, y));
+  const yi = y - YM_PICK_START_YEAR;
+  const mi = Math.max(0, Math.min(11, month - 1));
+  return [yi, mi];
+}
+
+function multiIndexToYm(yi, mi) {
+  const y = YM_PICK_START_YEAR + yi;
+  const m = String(mi + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
 
 function readStoredViewYm() {
   try {
@@ -30,7 +58,8 @@ Page({
     hideRepaid: false,
     viewYm: '',
     ymDisplay: '',
-    ymPickerValue: '',
+    ymMultiRange: YM_MULTI_RANGE,
+    ymMultiIndex: [0, 0],
     isCurrentViewMonth: true,
     repaidLineText: '本月已标记还款',
   },
@@ -67,10 +96,11 @@ Page({
 
   _ymUi(ym) {
     const n = normalizeYm(ym);
+    const [yi, mi] = ymToMultiIndex(n);
     return {
       viewYm: n,
       ymDisplay: ymDisplayLabel(n),
-      ymPickerValue: `${n}-01`,
+      ymMultiIndex: [yi, mi],
       isCurrentViewMonth: n === currentYm(),
     };
   },
@@ -103,8 +133,11 @@ Page({
     });
   },
 
-  onYmPickerChange(e) {
-    const next = ymFromDatePickerValue(e.detail.value);
+  onYmMultiChange(e) {
+    const idx = e.detail.value;
+    const yi = Number(idx[0]);
+    const mi = Number(idx[1]);
+    const next = multiIndexToYm(yi, mi);
     this._persistViewYm(next);
     this.setData(this._ymUi(next), () => this.refresh());
   },
