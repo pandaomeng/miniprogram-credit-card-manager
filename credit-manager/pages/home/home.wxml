@@ -10,12 +10,11 @@
     <view class="ym-bar">
       <picker mode="multiSelector" range="{{ymMultiRange}}" value="{{ymMultiIndex}}" bindchange="onYmMultiChange">
         <view class="ym-picker-trigger">
-          <text class="ym-text">{{ymDisplay}}</text>
+          <text class="ym-text">{{isCurrentViewMonth ? '本月' : ymDisplay}}</text>
           <text class="ym-caret">▼</text>
         </view>
       </picker>
-      <view class="ym-actions">
-        <text class="ym-tag" wx:if="{{isCurrentViewMonth}}">本月</text>
+      <view class="ym-actions" wx:if="{{!isCurrentViewMonth}}">
         <view class="ym-quick" bindtap="onGoCurrentMonth">切换到本月</view>
       </view>
     </view>
