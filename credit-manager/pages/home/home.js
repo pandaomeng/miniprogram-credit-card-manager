@@ -4,14 +4,28 @@ const { enrichCard } = require('../../utils/card-helpers.js');
 Page({
   data: {
     statusBarHeight: 44,
+    navRightPaddingPx: 24,
     cards: [],
   },
 
   onLoad() {
     const win = wx.getWindowInfo ? wx.getWindowInfo() : {};
     const sys = wx.getSystemInfoSync();
+    const statusBarHeight = win.statusBarHeight || sys.statusBarHeight || 44;
+    let navRightPaddingPx = 24;
+    try {
+      const menu = wx.getMenuButtonBoundingClientRect();
+      const ww = sys.windowWidth || win.windowWidth;
+      if (menu && typeof menu.left === 'number' && ww) {
+        const gapPx = 8;
+        navRightPaddingPx = Math.max(24, Math.ceil(ww - menu.left + gapPx));
+      }
+    } catch (e) {
+      navRightPaddingPx = 96;
+    }
     this.setData({
-      statusBarHeight: win.statusBarHeight || sys.statusBarHeight || 44,
+      statusBarHeight,
+      navRightPaddingPx,
     });
   },
 

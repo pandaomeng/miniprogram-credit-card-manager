@@ -1,6 +1,6 @@
 <view class="page">
   <view class="nav" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-inner">
+    <view class="nav-inner" style="padding-right: {{navRightPaddingPx}}px;">
       <text class="nav-title">账期管家</text>
       <view class="nav-add" bindtap="onAdd" aria-label="添加信用卡">＋</view>
     </view>

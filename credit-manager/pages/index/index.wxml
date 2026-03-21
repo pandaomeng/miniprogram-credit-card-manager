@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="hero">
+    <text class="hero-title">信用管理</text>
+    <text class="hero-desc">在此开始搭建业务页面与接口</text>
+  </view>
+  <view class="card">
+    <text class="card-label">框架已就绪</text>
+    <text class="card-tip">在 app.json 中注册新页面，在 pages/ 下添加四件套：.js / .json / .wxml / .wxss</text>
+  </view>
+</view>

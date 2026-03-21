@@ -10,7 +10,7 @@
 
 .nav-inner {
   height: 88rpx;
-  padding: 0 32rpx;
+  padding-left: 32rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
