@@ -68,6 +68,33 @@ function nextDueYmd(dueDay) {
   return formatDueYmd(nextDueDateStart(dueDay));
 }
 
+/** 指定查看月份内的还款日 0 点（local），dueDay 为 1–28 */
+function dueDateInViewMonth(viewYm, dueDay) {
+  const n = normalizeYm(viewYm);
+  const [ys, ms] = n.split('-');
+  const y = parseInt(ys, 10);
+  const monthIndex = parseInt(ms, 10) - 1;
+  const d = Number(dueDay);
+  return new Date(y, monthIndex, d, 0, 0, 0, 0);
+}
+
+/**
+ * 从今天 0 点到「查看月份」内还款日的天数差（可负表示已过期）
+ * 展示用天数为非负；紧急态包含已逾期（raw <= 7）
+ */
+function daysRelativeToDueInViewMonth(viewYm, dueDay) {
+  const target = dueDateInViewMonth(viewYm, dueDay);
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+  const raw = Math.ceil((target - start) / 86400000);
+  return {
+    raw,
+    display: Math.max(0, raw),
+    dueDate: target,
+    dueYmd: formatDueYmd(target),
+  };
+}
+
 function currentYm() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -121,8 +148,9 @@ function enrichCard(card, viewYm) {
   const ym = normalizeYm(viewYm);
   const c = migrateRepaidMonths(card);
   const bank = byCode(c.bank_code);
-  const daysLeft = daysUntilNextDue(c.due_day);
-  const next_due_ymd = nextDueYmd(c.due_day);
+  const dueMeta = daysRelativeToDueInViewMonth(ym, c.due_day);
+  const daysLeft = dueMeta.display;
+  const next_due_ymd = dueMeta.dueYmd;
   const repaid_active = !!c.repaid_months[ym];
   const customName = (c.custom_bank_name || '').trim();
   const bank_name =
@@ -143,7 +171,7 @@ function enrichCard(card, viewYm) {
     next_due_ymd,
     view_ym: ym,
     repaid_active,
-    due_urgent: !repaid_active && daysLeft <= 7,
+    due_urgent: !repaid_active && dueMeta.raw <= 7,
   };
 }
 
@@ -161,5 +189,7 @@ module.exports = {
   ymDisplayLabel,
   ymFromDatePickerValue,
   migrateRepaidMonths,
+  dueDateInViewMonth,
+  daysRelativeToDueInViewMonth,
   enrichCard,
 };
