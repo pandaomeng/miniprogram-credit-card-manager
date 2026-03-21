@@ -32,6 +32,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.row.ym-hint .v {
+  color: #5c6bc0;
+  font-weight: 600;
+}
+
 .panel {
   margin: -32rpx 24rpx 0;
   background: #fff;

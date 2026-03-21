@@ -3,4 +3,5 @@ module.exports = {
   STORAGE_CARDS: 'credit_manager_cards',
   STORAGE_DEMO_SEEDED: 'credit_manager_demo_seeded',
   STORAGE_HIDE_REPAID: 'credit_manager_hide_repaid',
+  STORAGE_VIEW_YM: 'credit_manager_view_ym',
 };

@@ -39,6 +39,57 @@
   padding: 24rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
 }
 
+.ym-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx;
+}
+
+.ym-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 0;
+}
+
+.ym-text {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: 1rpx;
+}
+
+.ym-caret {
+  font-size: 22rpx;
+  color: #888;
+  margin-top: 4rpx;
+}
+
+.ym-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.ym-tag {
+  font-size: 22rpx;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.ym-quick {
+  font-size: 26rpx;
+  color: #2d3a5c;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid #c5cad8;
+  background: #fff;
+}
+
 .section-head {
   margin: 8rpx 8rpx 20rpx;
 }

@@ -6,6 +6,10 @@
   </view>
 
   <view class="panel">
+    <view class="row ym-hint" wx:if="{{!isCurrentViewMonth}}">
+      <text class="k">查看月份</text>
+      <text class="v">{{ymDisplay}}</text>
+    </view>
     <view class="row" wx:if="{{card.cardholder_name}}">
       <text class="k">持卡人</text>
       <text class="v">{{card.cardholder_name}}</text>
@@ -23,11 +27,11 @@
       <text class="v">{{card.days_until_due}} 天</text>
     </view>
     <view class="row highlight repaid-row" wx:else>
-      <text class="k">本期还款</text>
-      <text class="v">已标记完成</text>
+      <text class="k">{{isCurrentViewMonth ? '本月' : ymDisplay}}</text>
+      <text class="v">已标记还款</text>
     </view>
     <view class="row switch-row">
-      <text class="k">本期已还款</text>
+      <text class="k">{{repaySwitchLabel}}</text>
       <switch
         checked="{{card.repaid_active}}"
         color="#2d3a5c"

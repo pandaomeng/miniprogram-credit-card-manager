@@ -48,7 +48,7 @@ function nextDueDateStart(dueDay) {
   return new Date(ty, tm, due, 0, 0, 0, 0);
 }
 
-/** 距离下次还款剩余整天数（当天还款算 0） */
+/** 距离下次还款剩余整天数（当天还款算 0），按真实今天计算 */
 function daysUntilNextDue(dueDay) {
   const target = nextDueDateStart(dueDay);
   const today = new Date();
@@ -63,33 +63,85 @@ function formatDueYmd(date) {
   return `${y}-${m}-${d}`;
 }
 
-/** 下一期还款日 YYYY-MM-DD，用于与 repaid_for_due_ymd 对齐 */
+/** 下一期还款日 YYYY-MM-DD（相对今天） */
 function nextDueYmd(dueDay) {
   return formatDueYmd(nextDueDateStart(dueDay));
 }
 
-function enrichCard(card) {
-  const bank = byCode(card.bank_code);
-  const daysLeft = daysUntilNextDue(card.due_day);
-  const next_due_ymd = nextDueYmd(card.due_day);
-  const repaid_active = !!(card.repaid && card.repaid_for_due_ymd === next_due_ymd);
-  const customName = (card.custom_bank_name || '').trim();
+function currentYm() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function normalizeYm(ym) {
+  if (!ym || typeof ym !== 'string') return currentYm();
+  const m = ym.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return currentYm();
+  const month = parseInt(m[2], 10);
+  if (month < 1 || month > 12) return currentYm();
+  return `${m[1]}-${m[2]}`;
+}
+
+function ymDisplayLabel(ym) {
+  const n = normalizeYm(ym);
+  const parts = n.split('-');
+  const y = parseInt(parts[0], 10);
+  const mo = parseInt(parts[1], 10);
+  return `${y}年${mo}月`;
+}
+
+/** 日期选择器返回值 -> YYYY-MM */
+function ymFromDatePickerValue(v) {
+  if (!v && v !== 0) return currentYm();
+  const s = String(v).slice(0, 7);
+  if (/^\d{4}-\d{2}$/.test(s)) return normalizeYm(s);
+  return currentYm();
+}
+
+/** 合并旧版 repaid / repaid_for_due_ymd 到按月 repaid_months */
+function migrateRepaidMonths(card) {
+  if (!card) return card;
+  const repaid_months = {
+    ...(card.repaid_months && typeof card.repaid_months === 'object' ? card.repaid_months : {}),
+  };
+  if (card.repaid && card.repaid_for_due_ymd) {
+    const ym = String(card.repaid_for_due_ymd).slice(0, 7);
+    if (/^\d{4}-\d{2}$/.test(ym)) {
+      repaid_months[ym] = true;
+    }
+  }
+  return { ...card, repaid_months };
+}
+
+/**
+ * @param {object} card
+ * @param {string} [viewYm] 查看的年月 YYYY-MM，还款勾选状态按该月独立
+ */
+function enrichCard(card, viewYm) {
+  const ym = normalizeYm(viewYm);
+  const c = migrateRepaidMonths(card);
+  const bank = byCode(c.bank_code);
+  const daysLeft = daysUntilNextDue(c.due_day);
+  const next_due_ymd = nextDueYmd(c.due_day);
+  const repaid_active = !!c.repaid_months[ym];
+  const customName = (c.custom_bank_name || '').trim();
   const bank_name =
-    card.bank_code === BANK_CUSTOM_CODE
+    c.bank_code === BANK_CUSTOM_CODE
       ? (customName || '其它银行')
       : bank
         ? bank.name
         : '未知银行';
   const bank_color = bank ? bank.color : '#1a1a2e';
-  const logo_code = card.bank_code === BANK_CUSTOM_CODE ? BANK_CUSTOM_CODE : card.bank_code;
+  const logo_code = c.bank_code === BANK_CUSTOM_CODE ? BANK_CUSTOM_CODE : c.bank_code;
   return {
-    ...card,
+    ...c,
     bank_name,
     bank_color,
     logo_path: `/assets/banks/${logo_code}.png`,
-    card_display: maskLastFour(card.last4),
+    card_display: maskLastFour(c.last4),
     days_until_due: daysLeft,
     next_due_ymd,
+    view_ym: ym,
     repaid_active,
     due_urgent: !repaid_active && daysLeft <= 7,
   };
@@ -104,5 +156,10 @@ module.exports = {
   nextDueDateStart,
   formatDueYmd,
   nextDueYmd,
+  currentYm,
+  normalizeYm,
+  ymDisplayLabel,
+  ymFromDatePickerValue,
+  migrateRepaidMonths,
   enrichCard,
 };

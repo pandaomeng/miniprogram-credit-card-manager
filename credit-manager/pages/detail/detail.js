@@ -1,18 +1,37 @@
 const storage = require('../../utils/storage.js');
-const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
+const {
+  enrichCard,
+  currentYm,
+  normalizeYm,
+  ymDisplayLabel,
+  migrateRepaidMonths,
+} = require('../../utils/card-helpers.js');
 
 Page({
   data: {
     id: '',
+    viewYm: '',
+    ymDisplay: '',
+    isCurrentViewMonth: true,
+    repaySwitchLabel: '本月已还款',
     card: null,
   },
 
   onLoad(query) {
-    this.setData({ id: query.id || '' });
+    const id = query.id || '';
+    const ym = normalizeYm(query.ym ? decodeURIComponent(query.ym) : currentYm());
+    const isCurrentViewMonth = ym === currentYm();
+    this.setData({
+      id,
+      viewYm: ym,
+      ymDisplay: ymDisplayLabel(ym),
+      isCurrentViewMonth,
+      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
+    });
   },
 
   onShow() {
-    const { id } = this.data;
+    const { id, viewYm } = this.data;
     if (!id) {
       wx.navigateBack();
       return;
@@ -23,21 +42,37 @@ Page({
       setTimeout(() => wx.navigateBack(), 400);
       return;
     }
-    this.setData({ card: enrichCard(raw) });
+    const ym = normalizeYm(viewYm || currentYm());
+    const isCurrentViewMonth = ym === currentYm();
+    this.setData({
+      viewYm: ym,
+      ymDisplay: ymDisplayLabel(ym),
+      isCurrentViewMonth,
+      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
+      card: enrichCard(raw, ym),
+    });
   },
 
   onRepaidChange(e) {
-    const want = e.detail.value;
-    const { id } = this.data;
+    const want = !!e.detail.value;
+    const { id, viewYm } = this.data;
+    const ym = normalizeYm(viewYm || currentYm());
     const raw = storage.getCardById(id);
     if (!raw) return;
-    const ymd = nextDueYmd(raw.due_day);
-    const patch = want
-      ? { repaid: true, repaid_for_due_ymd: ymd }
-      : { repaid: false, repaid_for_due_ymd: '' };
-    if (!storage.updateCard(id, patch)) return;
+    const card = migrateRepaidMonths(raw);
+    const months = { ...card.repaid_months };
+    if (want) {
+      months[ym] = true;
+    } else {
+      delete months[ym];
+    }
+    if (!storage.updateCard(id, { repaid_months: months })) return;
     const next = storage.getCardById(id);
-    this.setData({ card: enrichCard(next) });
+    const isCurrentViewMonth = ym === currentYm();
+    this.setData({
+      card: enrichCard(next, ym),
+      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
+    });
   },
 
   onEdit() {

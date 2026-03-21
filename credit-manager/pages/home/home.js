@@ -1,6 +1,25 @@
 const storage = require('../../utils/storage.js');
-const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
-const { STORAGE_HIDE_REPAID } = require('../../utils/constants.js');
+const {
+  enrichCard,
+  currentYm,
+  normalizeYm,
+  ymDisplayLabel,
+  ymFromDatePickerValue,
+  migrateRepaidMonths,
+} = require('../../utils/card-helpers.js');
+const { STORAGE_HIDE_REPAID, STORAGE_VIEW_YM } = require('../../utils/constants.js');
+
+function readStoredViewYm() {
+  try {
+    const s = wx.getStorageSync(STORAGE_VIEW_YM);
+    if (typeof s === 'string' && /^\d{4}-\d{2}$/.test(s)) {
+      return normalizeYm(s);
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return currentYm();
+}
 
 Page({
   data: {
@@ -9,6 +28,11 @@ Page({
     cards: [],
     totalCount: 0,
     hideRepaid: false,
+    viewYm: '',
+    ymDisplay: '',
+    ymPickerValue: '',
+    isCurrentViewMonth: true,
+    repaidLineText: '本月已标记还款',
   },
 
   onLoad() {
@@ -32,11 +56,31 @@ Page({
     } catch (e) {
       hideRepaid = false;
     }
+    const viewYm = readStoredViewYm();
     this.setData({
       statusBarHeight,
       navRightPaddingPx,
       hideRepaid,
+      ...this._ymUi(viewYm),
     });
+  },
+
+  _ymUi(ym) {
+    const n = normalizeYm(ym);
+    return {
+      viewYm: n,
+      ymDisplay: ymDisplayLabel(n),
+      ymPickerValue: `${n}-01`,
+      isCurrentViewMonth: n === currentYm(),
+    };
+  },
+
+  _persistViewYm(ym) {
+    try {
+      wx.setStorageSync(STORAGE_VIEW_YM, normalizeYm(ym));
+    } catch (e) {
+      wx.showToast({ title: '月份未保存', icon: 'none' });
+    }
   },
 
   onShow() {
@@ -45,13 +89,30 @@ Page({
 
   refresh() {
     const raw = storage.getCards();
-    const all = raw.map(enrichCard);
-    const { hideRepaid } = this.data;
+    const { viewYm, hideRepaid, ymDisplay, isCurrentViewMonth } = this.data;
+    const ym = normalizeYm(viewYm || currentYm());
+    const all = raw.map((c) => enrichCard(c, ym));
     const cards = hideRepaid ? all.filter((c) => !c.repaid_active) : all;
+    const repaidLineText = isCurrentViewMonth
+      ? '本月已标记还款'
+      : `${ymDisplay} 已标记还款`;
     this.setData({
       cards,
       totalCount: all.length,
+      repaidLineText,
     });
+  },
+
+  onYmPickerChange(e) {
+    const next = ymFromDatePickerValue(e.detail.value);
+    this._persistViewYm(next);
+    this.setData(this._ymUi(next), () => this.refresh());
+  },
+
+  onGoCurrentMonth() {
+    const n = currentYm();
+    this._persistViewYm(n);
+    this.setData(this._ymUi(n), () => this.refresh());
   },
 
   onHideRepaidChange(e) {
@@ -80,12 +141,15 @@ Page({
     if (!id) return;
     const raw = storage.getCardById(id);
     if (!raw) return;
-    const ymd = nextDueYmd(raw.due_day);
-    const active = !!(raw.repaid && raw.repaid_for_due_ymd === ymd);
-    const patch = active
-      ? { repaid: false, repaid_for_due_ymd: '' }
-      : { repaid: true, repaid_for_due_ymd: ymd };
-    if (!storage.updateCard(id, patch)) return;
+    const ym = normalizeYm(this.data.viewYm || currentYm());
+    const card = migrateRepaidMonths(raw);
+    const months = { ...card.repaid_months };
+    if (months[ym]) {
+      delete months[ym];
+    } else {
+      months[ym] = true;
+    }
+    if (!storage.updateCard(id, { repaid_months: months })) return;
     this.refresh();
   },
 
@@ -96,7 +160,8 @@ Page({
   onOpenCard(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+    const ym = encodeURIComponent(normalizeYm(this.data.viewYm || currentYm()));
+    wx.navigateTo({ url: `/pages/detail/detail?id=${id}&ym=${ym}` });
   },
 
   onLongPressCard(e) {
