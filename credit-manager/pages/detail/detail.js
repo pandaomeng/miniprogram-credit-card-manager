@@ -66,7 +66,15 @@ Page({
     } else {
       delete months[ym];
     }
-    if (!storage.updateCard(id, { repaid_months: months })) return;
+    if (
+      !storage.updateCard(id, {
+        repaid_months: months,
+        repaid: false,
+        repaid_for_due_ymd: '',
+      })
+    ) {
+      return;
+    }
     const next = storage.getCardById(id);
     const isCurrentViewMonth = ym === currentYm();
     this.setData({

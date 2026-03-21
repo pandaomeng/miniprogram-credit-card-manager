@@ -182,7 +182,15 @@ Page({
     } else {
       months[ym] = true;
     }
-    if (!storage.updateCard(id, { repaid_months: months })) return;
+    if (
+      !storage.updateCard(id, {
+        repaid_months: months,
+        repaid: false,
+        repaid_for_due_ymd: '',
+      })
+    ) {
+      return;
+    }
     this.refresh();
   },
 

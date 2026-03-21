@@ -125,13 +125,18 @@ function ymFromDatePickerValue(v) {
   return currentYm();
 }
 
-/** 合并旧版 repaid / repaid_for_due_ymd 到按月 repaid_months */
+/**
+ * 合并旧版 repaid / repaid_for_due_ymd 到按月 repaid_months。
+ * 仅当存储里还没有 repaid_months 字段时做一次性迁移，避免用户取消勾选后又被旧字段写回。
+ */
 function migrateRepaidMonths(card) {
   if (!card) return card;
   const repaid_months = {
     ...(card.repaid_months && typeof card.repaid_months === 'object' ? card.repaid_months : {}),
   };
-  if (card.repaid && card.repaid_for_due_ymd) {
+  const hasStoredMonths =
+    card.repaid_months !== undefined && card.repaid_months !== null;
+  if (!hasStoredMonths && card.repaid && card.repaid_for_due_ymd) {
     const ym = String(card.repaid_for_due_ymd).slice(0, 7);
     if (/^\d{4}-\d{2}$/.test(ym)) {
       repaid_months[ym] = true;
