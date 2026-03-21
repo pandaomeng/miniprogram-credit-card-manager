@@ -1,11 +1,14 @@
 const storage = require('../../utils/storage.js');
 const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
+const { STORAGE_HIDE_REPAID } = require('../../utils/constants.js');
 
 Page({
   data: {
     statusBarHeight: 44,
     navRightPaddingPx: 24,
     cards: [],
+    totalCount: 0,
+    hideRepaid: false,
   },
 
   onLoad() {
@@ -23,9 +26,16 @@ Page({
     } catch (e) {
       navRightPaddingPx = 96;
     }
+    let hideRepaid = false;
+    try {
+      hideRepaid = wx.getStorageSync(STORAGE_HIDE_REPAID) === true;
+    } catch (e) {
+      hideRepaid = false;
+    }
     this.setData({
       statusBarHeight,
       navRightPaddingPx,
+      hideRepaid,
     });
   },
 
@@ -35,7 +45,34 @@ Page({
 
   refresh() {
     const raw = storage.getCards();
-    this.setData({ cards: raw.map(enrichCard) });
+    const all = raw.map(enrichCard);
+    const { hideRepaid } = this.data;
+    const cards = hideRepaid ? all.filter((c) => !c.repaid_active) : all;
+    this.setData({
+      cards,
+      totalCount: all.length,
+    });
+  },
+
+  onHideRepaidChange(e) {
+    const hideRepaid = !!e.detail.value;
+    try {
+      wx.setStorageSync(STORAGE_HIDE_REPAID, hideRepaid);
+    } catch (err) {
+      wx.showToast({ title: '设置未保存', icon: 'none' });
+      return;
+    }
+    this.setData({ hideRepaid }, () => this.refresh());
+  },
+
+  onShowRepaidCards() {
+    try {
+      wx.setStorageSync(STORAGE_HIDE_REPAID, false);
+    } catch (err) {
+      wx.showToast({ title: '设置未保存', icon: 'none' });
+      return;
+    }
+    this.setData({ hideRepaid: false }, () => this.refresh());
   },
 
   onToggleRepaid(e) {

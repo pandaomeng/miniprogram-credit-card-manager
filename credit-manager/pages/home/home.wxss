@@ -39,10 +39,60 @@
   padding: 24rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
 }
 
+.section-head {
+  margin: 8rpx 8rpx 20rpx;
+}
+
 .section-label {
+  display: block;
   font-size: 24rpx;
   color: #888;
-  margin: 8rpx 8rpx 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(26, 26, 46, 0.05);
+}
+
+.filter-text {
+  font-size: 28rpx;
+  color: #444;
+}
+
+.filter-empty {
+  padding: 56rpx 32rpx 40rpx;
+  text-align: center;
+}
+
+.filter-empty-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 16rpx;
+}
+
+.filter-empty-sub {
+  display: block;
+  font-size: 26rpx;
+  color: #888;
+  line-height: 1.55;
+  margin-bottom: 32rpx;
+}
+
+.filter-empty-btn {
+  display: inline-block;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  color: #2d3a5c;
+  border: 2rpx solid #2d3a5c;
+  border-radius: 999rpx;
 }
 
 .card-row {

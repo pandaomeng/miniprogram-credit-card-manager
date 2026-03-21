@@ -6,39 +6,58 @@
     </view>
   </view>
 
-  <view class="body" wx:if="{{cards.length}}">
-    <view class="section-label">我的信用卡</view>
-    <view
-      class="card-row {{item.repaid_active ? 'is-repaid' : ''}}"
-      wx:for="{{cards}}"
-      wx:key="id"
-      bindtap="onOpenCard"
-      data-id="{{item.id}}"
-    >
-      <view class="repay-hit" catchtap="onToggleRepaid" data-id="{{item.id}}">
-        <view class="repay-check {{item.repaid_active ? 'on' : ''}}">
-          <text class="repay-tick" wx:if="{{item.repaid_active}}">✓</text>
-        </view>
+  <view class="body" wx:if="{{totalCount > 0}}">
+    <view class="section-head">
+      <text class="section-label">我的信用卡</text>
+      <view class="filter-row">
+        <text class="filter-text">隐藏已还款</text>
+        <switch
+          checked="{{hideRepaid}}"
+          color="#2d3a5c"
+          bindchange="onHideRepaidChange"
+        />
       </view>
-      <image class="bank-logo" src="{{item.logo_path}}" mode="aspectFit" />
-      <view class="card-main" bindlongpress="onLongPressCard" data-id="{{item.id}}">
-        <view class="row-top">
-          <view class="name-wrap">
-            <text class="bank-name">{{item.bank_name}}</text>
-            <text class="repaid-badge" wx:if="{{item.repaid_active}}">已还款</text>
+    </view>
+
+    <block wx:if="{{cards.length}}">
+      <view
+        class="card-row {{item.repaid_active ? 'is-repaid' : ''}}"
+        wx:for="{{cards}}"
+        wx:key="id"
+        bindtap="onOpenCard"
+        data-id="{{item.id}}"
+      >
+        <view class="repay-hit" catchtap="onToggleRepaid" data-id="{{item.id}}">
+          <view class="repay-check {{item.repaid_active ? 'on' : ''}}">
+            <text class="repay-tick" wx:if="{{item.repaid_active}}">✓</text>
           </view>
-          <text class="last4">{{item.card_display}}</text>
         </view>
-        <view class="row-meta">
-          <text>账单日 每月 {{item.bill_day}} 日</text>
-          <text class="dot">·</text>
-          <text>还款日 每月 {{item.due_day}} 日</text>
-        </view>
-        <view class="row-due repaid-line" wx:if="{{item.repaid_active}}">本期已标记还款</view>
-        <view class="row-due {{item.due_urgent ? 'urgent' : ''}}" wx:else>
-          距下次还款还有 {{item.days_until_due}} 天
+        <image class="bank-logo" src="{{item.logo_path}}" mode="aspectFit" />
+        <view class="card-main" bindlongpress="onLongPressCard" data-id="{{item.id}}">
+          <view class="row-top">
+            <view class="name-wrap">
+              <text class="bank-name">{{item.bank_name}}</text>
+              <text class="repaid-badge" wx:if="{{item.repaid_active}}">已还款</text>
+            </view>
+            <text class="last4">{{item.card_display}}</text>
+          </view>
+          <view class="row-meta">
+            <text>账单日 每月 {{item.bill_day}} 日</text>
+            <text class="dot">·</text>
+            <text>还款日 每月 {{item.due_day}} 日</text>
+          </view>
+          <view class="row-due repaid-line" wx:if="{{item.repaid_active}}">本期已标记还款</view>
+          <view class="row-due {{item.due_urgent ? 'urgent' : ''}}" wx:else>
+            距下次还款还有 {{item.days_until_due}} 天
+          </view>
         </view>
       </view>
+    </block>
+
+    <view class="filter-empty" wx:else>
+      <text class="filter-empty-title">已全部还清或未展示</text>
+      <text class="filter-empty-sub">已开启「隐藏已还款」，当前没有待还卡片。关闭开关可重新显示。</text>
+      <view class="filter-empty-btn" bindtap="onShowRepaidCards">显示已还款卡片</view>
     </view>
   </view>
 
