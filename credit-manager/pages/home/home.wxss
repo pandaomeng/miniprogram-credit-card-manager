@@ -163,19 +163,20 @@
 }
 
 .repay-hit {
-  width: 56rpx;
-  margin-right: 12rpx;
   flex-shrink: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 8rpx;
+  /* 扩大热区（约 44pt+），略向卡片内缘扩展便于拇指点击 */
+  padding: 28rpx 32rpx 28rpx 20rpx;
+  margin: -20rpx 4rpx -20rpx -12rpx;
+  box-sizing: content-box;
 }
 
 .repay-check {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 10rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 12rpx;
   border: 2rpx solid #c5c9d4;
   background: #fff;
   display: flex;
