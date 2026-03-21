@@ -1,4 +1,4 @@
-const { BANKS } = require('../../utils/banks.js');
+const { BANKS, BANK_CUSTOM_CODE } = require('../../utils/banks.js');
 const {
   normalizeCardDigits,
   formatCardInputDisplay,
@@ -12,9 +12,10 @@ Page({
   data: {
     mode: 'add',
     editId: '',
-    bankNames: BANKS.map((b) => b.name),
     bankChosen: false,
-    bankIndex: 0,
+    bank_code: '',
+    bankDisplayName: '',
+    custom_bank_name: '',
     cardInputDisplay: '',
     cardDigits: '',
     holderName: '',
@@ -32,7 +33,13 @@ Page({
     wx.setNavigationBarTitle({
       title: mode === 'edit' ? '编辑信用卡' : '添加信用卡',
     });
-    this.setData({ mode, bankChosen: false, bankIndex: 0 });
+    this.setData({
+      mode,
+      bankChosen: false,
+      bank_code: '',
+      bankDisplayName: '',
+      custom_bank_name: '',
+    });
     if (mode === 'edit' && query.id) {
       this.prefill(query.id);
     } else {
@@ -47,7 +54,6 @@ Page({
       setTimeout(() => wx.navigateBack(), 400);
       return;
     }
-    const bankIndex = BANKS.findIndex((b) => b.code === card.bank_code);
     const last4 = String(card.last4 || '')
       .replace(/\D/g, '')
       .slice(-4)
@@ -56,10 +62,32 @@ Page({
     const digits = normalizeCardDigits(prefix + last4);
     const billIndex = Math.max(0, Math.min(27, card.bill_day - 1));
     const dueIndex = Math.max(0, Math.min(27, card.due_day - 1));
+
+    let bankChosen = false;
+    let bank_code = '';
+    let bankDisplayName = '';
+    let custom_bank_name = '';
+
+    if (card.bank_code === BANK_CUSTOM_CODE) {
+      bankChosen = true;
+      bank_code = BANK_CUSTOM_CODE;
+      custom_bank_name = card.custom_bank_name || '';
+      bankDisplayName = (custom_bank_name || '').trim() || '其它银行';
+    } else {
+      const b = BANKS.find((x) => x.code === card.bank_code);
+      if (b) {
+        bankChosen = true;
+        bank_code = b.code;
+        bankDisplayName = b.name;
+      }
+    }
+
     this.setData({
       editId: id,
-      bankChosen: bankIndex >= 0,
-      bankIndex: bankIndex >= 0 ? bankIndex : 0,
+      bankChosen,
+      bank_code,
+      bankDisplayName,
+      custom_bank_name,
       cardDigits: digits,
       cardInputDisplay: formatCardInputDisplay(digits),
       holderName: card.cardholder_name || '',
@@ -74,7 +102,8 @@ Page({
   recompute() {
     const {
       bankChosen,
-      bankIndex,
+      bank_code,
+      custom_bank_name,
       cardDigits,
       holderName,
       billIndex,
@@ -83,18 +112,25 @@ Page({
     const billDay = billIndex + 1;
     const dueDay = dueIndex + 1;
     const digits = normalizeCardDigits(cardDigits);
-    const bankOk = bankChosen && bankIndex >= 0;
+    const cn = (custom_bank_name || '').trim();
+    const bankOk =
+      bankChosen &&
+      !!bank_code &&
+      (bank_code !== BANK_CUSTOM_CODE || (cn.length >= 1 && cn.length <= 20));
     const cardOk = digits.length >= 13 && digits.length <= 19;
     const dueOk = isDueAfterBill(billDay, dueDay);
     const holderLen = (holderName || '').length;
     const holderOk = holderLen <= 20;
 
     const hints = {
-      bank: bankOk ? '' : '请选择发卡银行',
+      bank: bankOk ? '' : '请选择发卡银行，或手动输入名称',
       card: '',
       holder: holderOk ? '' : '姓名最长 20 个字符',
       due: dueOk ? '' : '还款日须与账单日不同（小于账单日视为次月还款）',
     };
+    if (bank_code === BANK_CUSTOM_CODE && bankChosen && cn.length > 20) {
+      hints.bank = '银行名称最长 20 个字符';
+    }
     if (digits.length > 0 && digits.length < 13) {
       hints.card = '卡号需为 13–19 位数字';
     } else if (digits.length > 19) {
@@ -105,9 +141,32 @@ Page({
     this.setData({ billDay, dueDay, hints, canSubmit });
   },
 
-  onBankChange(e) {
+  onPickBank() {
+    wx.navigateTo({
+      url: '/pages/bank-pick/bank-pick',
+      events: {
+        bankPicked: (data) => {
+          this.applyBankPick(data);
+        },
+      },
+    });
+  },
+
+  applyBankPick(data) {
+    if (!data || !data.bank_code) return;
+    const name = (data.custom_bank_name || '').trim();
+    const display =
+      data.bank_code === BANK_CUSTOM_CODE
+        ? (name || '其它银行')
+        : data.bank_name || '';
     this.setData(
-      { bankChosen: true, bankIndex: Number(e.detail.value) },
+      {
+        bankChosen: true,
+        bank_code: data.bank_code,
+        custom_bank_name:
+          data.bank_code === BANK_CUSTOM_CODE ? name : '',
+        bankDisplayName: display,
+      },
       () => this.recompute(),
     );
   },
@@ -140,17 +199,21 @@ Page({
     const {
       mode,
       editId,
-      bankIndex,
+      bank_code,
+      custom_bank_name,
       cardDigits,
       holderName,
       billIndex,
       dueIndex,
     } = this.data;
     const digits = normalizeCardDigits(cardDigits);
-    const bank_code = BANKS[bankIndex].code;
     const last4 = digits.slice(-4);
     const payload = {
       bank_code,
+      custom_bank_name:
+        bank_code === BANK_CUSTOM_CODE
+          ? (custom_bank_name || '').trim()
+          : '',
       last4,
       cardholder_name: (holderName || '').trim(),
       bill_day: billIndex + 1,

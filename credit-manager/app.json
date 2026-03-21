@@ -3,6 +3,7 @@
     "pages/onboarding/onboarding",
     "pages/home/home",
     "pages/card-form/card-form",
+    "pages/bank-pick/bank-pick",
     "pages/detail/detail"
   ],
   "window": {

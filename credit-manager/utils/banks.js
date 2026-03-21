@@ -1,3 +1,12 @@
+/** 非列表银行：手动输入名称时使用，主题色用于详情页 */
+const BANK_CUSTOM_CODE = 'CUSTOM';
+
+const CUSTOM_BANK_META = {
+  code: BANK_CUSTOM_CODE,
+  name: '',
+  color: '#64748b',
+};
+
 /** 15 家预置银行：主题色用于详情页头图 */
 const BANKS = [
   { code: 'CMB', name: '招商银行', color: '#C8102E' },
@@ -18,7 +27,10 @@ const BANKS = [
 ];
 
 function byCode(code) {
+  if (code === BANK_CUSTOM_CODE) {
+    return CUSTOM_BANK_META;
+  }
   return BANKS.find((b) => b.code === code) || null;
 }
 
-module.exports = { BANKS, byCode };
+module.exports = { BANKS, BANK_CUSTOM_CODE, byCode };

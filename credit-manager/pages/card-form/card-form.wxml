@@ -1,11 +1,10 @@
 <view class="page safe-page">
   <view class="field">
     <text class="label">发卡银行</text>
-    <picker mode="selector" range="{{bankNames}}" value="{{bankIndex}}" bindchange="onBankChange">
-      <view class="picker-value {{!bankChosen ? 'placeholder' : ''}}">
-        {{!bankChosen ? '请选择发卡银行' : bankNames[bankIndex]}}
-      </view>
-    </picker>
+    <view class="picker-value bank-row {{!bankChosen ? 'placeholder' : ''}}" bindtap="onPickBank">
+      <text class="bank-row-text">{{!bankChosen ? '点击搜索或选择银行，可手动输入' : bankDisplayName}}</text>
+      <text class="bank-row-arrow">›</text>
+    </view>
     <text class="hint-error" wx:if="{{hints.bank}}">{{hints.bank}}</text>
   </view>
 

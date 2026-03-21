@@ -1,4 +1,4 @@
-const { byCode } = require('./banks.js');
+const { byCode, BANK_CUSTOM_CODE } = require('./banks.js');
 
 /** 仅数字，最多 19 位 */
 function normalizeCardDigits(raw) {
@@ -73,11 +73,20 @@ function enrichCard(card) {
   const daysLeft = daysUntilNextDue(card.due_day);
   const next_due_ymd = nextDueYmd(card.due_day);
   const repaid_active = !!(card.repaid && card.repaid_for_due_ymd === next_due_ymd);
+  const customName = (card.custom_bank_name || '').trim();
+  const bank_name =
+    card.bank_code === BANK_CUSTOM_CODE
+      ? (customName || '其它银行')
+      : bank
+        ? bank.name
+        : '未知银行';
+  const bank_color = bank ? bank.color : '#1a1a2e';
+  const logo_code = card.bank_code === BANK_CUSTOM_CODE ? BANK_CUSTOM_CODE : card.bank_code;
   return {
     ...card,
-    bank_name: bank ? bank.name : '未知银行',
-    bank_color: bank ? bank.color : '#1a1a2e',
-    logo_path: `/assets/banks/${card.bank_code}.png`,
+    bank_name,
+    bank_color,
+    logo_path: `/assets/banks/${logo_code}.png`,
     card_display: maskLastFour(card.last4),
     days_until_due: daysLeft,
     next_due_ymd,

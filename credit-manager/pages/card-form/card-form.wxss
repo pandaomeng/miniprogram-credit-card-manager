@@ -37,6 +37,29 @@
   color: #aaa;
 }
 
+.bank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bank-row-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 16rpx;
+}
+
+.bank-row-arrow {
+  flex-shrink: 0;
+  font-size: 36rpx;
+  color: #bbb;
+  line-height: 1;
+  font-weight: 300;
+}
+
 .actions {
   margin-top: 56rpx;
 }
