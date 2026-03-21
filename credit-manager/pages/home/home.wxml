@@ -1,0 +1,43 @@
+<view class="page">
+  <view class="nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-inner">
+      <text class="nav-title">账期管家</text>
+      <view class="nav-add" bindtap="onAdd" aria-label="添加信用卡">＋</view>
+    </view>
+  </view>
+
+  <view class="body" wx:if="{{cards.length}}">
+    <view class="section-label">我的信用卡</view>
+    <view
+      class="card-row"
+      wx:for="{{cards}}"
+      wx:key="id"
+      bindtap="onOpenCard"
+      bindlongpress="onLongPressCard"
+      data-id="{{item.id}}"
+    >
+      <image class="bank-logo" src="{{item.logo_path}}" mode="aspectFit" />
+      <view class="card-main">
+        <view class="row-top">
+          <text class="bank-name">{{item.bank_name}}</text>
+          <text class="last4">{{item.card_display}}</text>
+        </view>
+        <view class="row-meta">
+          <text>账单日 每月 {{item.bill_day}} 日</text>
+          <text class="dot">·</text>
+          <text>还款日 每月 {{item.due_day}} 日</text>
+        </view>
+        <view class="row-due {{item.due_urgent ? 'urgent' : ''}}">
+          距下次还款还有 {{item.days_until_due}} 天
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:else>
+    <view class="empty-illus" aria-hidden="true">💳</view>
+    <text class="empty-title">还没有信用卡</text>
+    <text class="empty-sub">添加第一张卡，开始管理账单日与还款日</text>
+    <button class="empty-btn btn-primary" bindtap="onAdd">添加第一张信用卡</button>
+  </view>
+</view>

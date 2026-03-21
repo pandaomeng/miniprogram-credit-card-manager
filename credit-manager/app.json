@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/onboarding/onboarding",
+    "pages/home/home",
+    "pages/card-form/card-form",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "账期管家",
+    "navigationBarBackgroundColor": "#1a1a2e",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f6fa",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

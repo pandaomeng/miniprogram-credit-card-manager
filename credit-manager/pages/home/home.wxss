@@ -1,0 +1,143 @@
+.page {
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.nav {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.nav-inner {
+  height: 88rpx;
+  padding: 0 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.nav-add {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.body {
+  padding: 24rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.section-label {
+  font-size: 24rpx;
+  color: #888;
+  margin: 8rpx 8rpx 16rpx;
+}
+
+.card-row {
+  display: flex;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 8rpx 28rpx rgba(26, 26, 46, 0.06);
+}
+
+.bank-logo {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: #f0f2f8;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.bank-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.last4 {
+  font-size: 26rpx;
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-meta {
+  font-size: 24rpx;
+  color: #777;
+  margin-bottom: 10rpx;
+}
+
+.dot {
+  margin: 0 8rpx;
+  color: #ccc;
+}
+
+.row-due {
+  font-size: 24rpx;
+  color: #2e7d32;
+}
+
+.row-due.urgent {
+  color: #e53935;
+  font-weight: 600;
+}
+
+.empty {
+  padding: 120rpx 56rpx 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-illus {
+  font-size: 120rpx;
+  margin-bottom: 32rpx;
+  opacity: 0.85;
+}
+
+.empty-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.empty-sub {
+  font-size: 26rpx;
+  color: #888;
+  line-height: 1.55;
+  margin-bottom: 48rpx;
+}
+
+.empty-btn {
+  width: 100%;
+  max-width: 520rpx;
+}

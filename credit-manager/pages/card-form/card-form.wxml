@@ -1,0 +1,57 @@
+<view class="page safe-page">
+  <view class="field">
+    <text class="label">发卡银行</text>
+    <picker mode="selector" range="{{bankNames}}" value="{{bankIndex}}" bindchange="onBankChange">
+      <view class="picker-value {{!bankChosen ? 'placeholder' : ''}}">
+        {{!bankChosen ? '请选择发卡银行' : bankNames[bankIndex]}}
+      </view>
+    </picker>
+    <text class="hint-error" wx:if="{{hints.bank}}">{{hints.bank}}</text>
+  </view>
+
+  <view class="field">
+    <text class="label">卡号</text>
+    <input
+      class="input"
+      type="text"
+      maxlength="23"
+      placeholder="请输入卡号（13–19 位）"
+      value="{{cardInputDisplay}}"
+      bindinput="onCardInput"
+    />
+    <text class="hint-error" wx:if="{{hints.card}}">{{hints.card}}</text>
+  </view>
+
+  <view class="field">
+    <text class="label">持卡人姓名（选填）</text>
+    <input
+      class="input"
+      type="text"
+      maxlength="20"
+      placeholder="最长 20 个字符"
+      value="{{holderName}}"
+      bindinput="onHolderInput"
+    />
+    <text class="hint-error" wx:if="{{hints.holder}}">{{hints.holder}}</text>
+  </view>
+
+  <view class="field">
+    <text class="label">账单日</text>
+    <picker mode="selector" range="{{dayLabels}}" value="{{billIndex}}" bindchange="onBillChange">
+      <view class="picker-value">每月 {{billDay}} 日</view>
+    </picker>
+  </view>
+
+  <view class="field">
+    <text class="label">还款日</text>
+    <picker mode="selector" range="{{dayLabels}}" value="{{dueIndex}}" bindchange="onDueChange">
+      <view class="picker-value">每月 {{dueDay}} 日</view>
+    </picker>
+    <text class="hint-error" wx:if="{{hints.due}}">{{hints.due}}</text>
+  </view>
+
+  <view class="actions">
+    <view class="btn-primary {{canSubmit ? '' : 'disabled'}}" bindtap="onSave">保存</view>
+    <view class="btn-ghost" bindtap="onCancel">取消</view>
+  </view>
+</view>

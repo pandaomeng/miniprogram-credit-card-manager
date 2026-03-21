@@ -1,0 +1,31 @@
+<view class="page safe-page" wx:if="{{card}}">
+  <view class="hero" style="background: linear-gradient(145deg, {{card.bank_color}} 0%, {{card.bank_color}}cc 55%, #1a1a2e 100%);">
+    <image class="hero-logo" src="{{card.logo_path}}" mode="aspectFit" />
+    <text class="hero-name">{{card.bank_name}}</text>
+    <text class="hero-num">{{card.card_display}}</text>
+  </view>
+
+  <view class="panel">
+    <view class="row" wx:if="{{card.cardholder_name}}">
+      <text class="k">持卡人</text>
+      <text class="v">{{card.cardholder_name}}</text>
+    </view>
+    <view class="row">
+      <text class="k">账单日</text>
+      <text class="v">每月 {{card.bill_day}} 日</text>
+    </view>
+    <view class="row">
+      <text class="k">还款日</text>
+      <text class="v">每月 {{card.due_day}} 日</text>
+    </view>
+    <view class="row highlight {{card.due_urgent ? 'urgent' : ''}}">
+      <text class="k">距下次还款</text>
+      <text class="v">{{card.days_until_due}} 天</text>
+    </view>
+  </view>
+
+  <view class="footer">
+    <view class="btn-primary" bindtap="onEdit">编辑</view>
+    <view class="btn-danger" bindtap="onDelete">删除卡片</view>
+  </view>
+</view>

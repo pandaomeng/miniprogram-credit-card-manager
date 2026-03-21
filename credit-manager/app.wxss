@@ -1,0 +1,58 @@
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 28rpx;
+  color: #333;
+  background-color: #f5f6fa;
+  box-sizing: border-box;
+}
+
+.safe-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.hint-error {
+  color: #e53935;
+  font-size: 24rpx;
+  margin-top: 12rpx;
+  line-height: 1.4;
+}
+
+.btn-primary {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(135deg, #2d3a5c 0%, #1a1a2e 100%);
+}
+
+.btn-primary.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.btn-ghost {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  color: #555;
+  background: #fff;
+  border: 2rpx solid #e0e0e0;
+}
+
+.btn-danger {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  color: #c62828;
+  background: #fff;
+  border: 2rpx solid #ffcdd2;
+}

@@ -1,0 +1,21 @@
+<view class="page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="skip" style="top: {{statusBarHeight}}px;" bindtap="onSkip">跳过</view>
+  <swiper
+    class="swiper"
+    indicator-dots="{{true}}"
+    indicator-color="rgba(255,255,255,0.35)"
+    indicator-active-color="#ffffff"
+    autoplay="{{false}}"
+    circular="{{false}}"
+  >
+    <swiper-item wx:for="{{slides}}" wx:key="title">
+      <view class="slide">
+        <text class="slide-title">{{item.title}}</text>
+        <text class="slide-desc">{{item.desc}}</text>
+      </view>
+    </swiper-item>
+  </swiper>
+  <view class="footer">
+    <button class="start btn-primary" bindtap="onStart">立即开始</button>
+  </view>
+</view>

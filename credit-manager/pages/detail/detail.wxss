@@ -1,0 +1,82 @@
+.page {
+  min-height: 100vh;
+  background: #f5f6fa;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.hero {
+  padding: 56rpx 40rpx 64rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+}
+
+.hero-logo {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 28rpx;
+}
+
+.hero-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.hero-num {
+  font-size: 30rpx;
+  opacity: 0.92;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  margin: -32rpx 24rpx 0;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 8rpx 0;
+  box-shadow: 0 12rpx 40rpx rgba(26, 26, 46, 0.08);
+  position: relative;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 2rpx solid #f2f2f2;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.k {
+  font-size: 28rpx;
+  color: #888;
+}
+
+.v {
+  font-size: 28rpx;
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+.row.highlight .v {
+  color: #2e7d32;
+}
+
+.row.highlight.urgent .v {
+  color: #e53935;
+  font-weight: 700;
+}
+
+.footer {
+  padding: 48rpx 32rpx 0;
+}
+
+.footer .btn-primary {
+  margin-bottom: 24rpx;
+}
