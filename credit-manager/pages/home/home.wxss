@@ -55,6 +55,45 @@
   box-shadow: 0 8rpx 28rpx rgba(26, 26, 46, 0.06);
 }
 
+.card-row.is-repaid {
+  background: #f8f9fc;
+  box-shadow: 0 4rpx 16rpx rgba(26, 26, 46, 0.04);
+}
+
+.repay-hit {
+  width: 56rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8rpx;
+}
+
+.repay-check {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 10rpx;
+  border: 2rpx solid #c5c9d4;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.repay-check.on {
+  border-color: #2d3a5c;
+  background: #2d3a5c;
+}
+
+.repay-tick {
+  color: #fff;
+  font-size: 24rpx;
+  line-height: 1;
+  font-weight: 600;
+}
+
 .bank-logo {
   width: 88rpx;
   height: 88rpx;
@@ -71,15 +110,35 @@
 
 .row-top {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 12rpx;
+  gap: 16rpx;
+}
+
+.name-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
 }
 
 .bank-name {
   font-size: 30rpx;
   font-weight: 600;
   color: #1a1a2e;
+}
+
+.repaid-badge {
+  font-size: 22rpx;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  line-height: 1.3;
+  font-weight: 500;
 }
 
 .last4 {
@@ -107,6 +166,11 @@
 .row-due.urgent {
   color: #e53935;
   font-weight: 600;
+}
+
+.row-due.repaid-line {
+  color: #78909c;
+  font-weight: 400;
 }
 
 .empty {

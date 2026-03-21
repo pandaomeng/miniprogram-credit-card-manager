@@ -1,5 +1,5 @@
 const storage = require('../../utils/storage.js');
-const { enrichCard } = require('../../utils/card-helpers.js');
+const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
 
 Page({
   data: {
@@ -24,6 +24,20 @@ Page({
       return;
     }
     this.setData({ card: enrichCard(raw) });
+  },
+
+  onRepaidChange(e) {
+    const want = e.detail.value;
+    const { id } = this.data;
+    const raw = storage.getCardById(id);
+    if (!raw) return;
+    const ymd = nextDueYmd(raw.due_day);
+    const patch = want
+      ? { repaid: true, repaid_for_due_ymd: ymd }
+      : { repaid: false, repaid_for_due_ymd: '' };
+    if (!storage.updateCard(id, patch)) return;
+    const next = storage.getCardById(id);
+    this.setData({ card: enrichCard(next) });
   },
 
   onEdit() {

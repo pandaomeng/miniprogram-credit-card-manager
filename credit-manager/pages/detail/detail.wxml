@@ -18,9 +18,21 @@
       <text class="k">还款日</text>
       <text class="v">每月 {{card.due_day}} 日</text>
     </view>
-    <view class="row highlight {{card.due_urgent ? 'urgent' : ''}}">
+    <view class="row highlight {{card.due_urgent ? 'urgent' : ''}}" wx:if="{{!card.repaid_active}}">
       <text class="k">距下次还款</text>
       <text class="v">{{card.days_until_due}} 天</text>
+    </view>
+    <view class="row highlight repaid-row" wx:else>
+      <text class="k">本期还款</text>
+      <text class="v">已标记完成</text>
+    </view>
+    <view class="row switch-row">
+      <text class="k">本期已还款</text>
+      <switch
+        checked="{{card.repaid_active}}"
+        color="#2d3a5c"
+        bindchange="onRepaidChange"
+      />
     </view>
   </view>
 

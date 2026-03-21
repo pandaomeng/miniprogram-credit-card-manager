@@ -56,9 +56,23 @@ function daysUntilNextDue(dueDay) {
   return Math.ceil((target - start) / 86400000);
 }
 
+function formatDueYmd(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** 下一期还款日 YYYY-MM-DD，用于与 repaid_for_due_ymd 对齐 */
+function nextDueYmd(dueDay) {
+  return formatDueYmd(nextDueDateStart(dueDay));
+}
+
 function enrichCard(card) {
   const bank = byCode(card.bank_code);
   const daysLeft = daysUntilNextDue(card.due_day);
+  const next_due_ymd = nextDueYmd(card.due_day);
+  const repaid_active = !!(card.repaid && card.repaid_for_due_ymd === next_due_ymd);
   return {
     ...card,
     bank_name: bank ? bank.name : '未知银行',
@@ -66,7 +80,9 @@ function enrichCard(card) {
     logo_path: `/assets/banks/${card.bank_code}.png`,
     card_display: maskLastFour(card.last4),
     days_until_due: daysLeft,
-    due_urgent: daysLeft <= 7,
+    next_due_ymd,
+    repaid_active,
+    due_urgent: !repaid_active && daysLeft <= 7,
   };
 }
 
@@ -77,5 +93,7 @@ module.exports = {
   isDueAfterBill,
   daysUntilNextDue,
   nextDueDateStart,
+  formatDueYmd,
+  nextDueYmd,
   enrichCard,
 };

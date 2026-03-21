@@ -1,5 +1,14 @@
 const storage = require('../../utils/storage.js');
-const { enrichCard } = require('../../utils/card-helpers.js');
+const { enrichCard, nextDueYmd } = require('../../utils/card-helpers.js');
+
+function sortCardsForHome(list) {
+  return list.slice().sort((a, b) => {
+    if (a.repaid_active !== b.repaid_active) {
+      return a.repaid_active ? 1 : -1;
+    }
+    return a.days_until_due - b.days_until_due;
+  });
+}
 
 Page({
   data: {
@@ -35,8 +44,22 @@ Page({
 
   refresh() {
     const raw = storage.getCards();
-    const cards = raw.map(enrichCard);
+    const cards = sortCardsForHome(raw.map(enrichCard));
     this.setData({ cards });
+  },
+
+  onToggleRepaid(e) {
+    const { id } = e.currentTarget.dataset;
+    if (!id) return;
+    const raw = storage.getCardById(id);
+    if (!raw) return;
+    const ymd = nextDueYmd(raw.due_day);
+    const active = !!(raw.repaid && raw.repaid_for_due_ymd === ymd);
+    const patch = active
+      ? { repaid: false, repaid_for_due_ymd: '' }
+      : { repaid: true, repaid_for_due_ymd: ymd };
+    if (!storage.updateCard(id, patch)) return;
+    this.refresh();
   },
 
   onAdd() {
