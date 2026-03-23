@@ -1,11 +1,7 @@
-const storage = require('./utils/storage.js');
-
 const CLOUD_ENV_ID = 'cloud1-3ggo73sl430a5422';
 
 App({
   onLaunch() {
-    storage.ensureDemoSeeded();
-
     if (wx.cloud) {
       wx.cloud.init({
         env: CLOUD_ENV_ID,

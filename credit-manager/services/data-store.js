@@ -1,30 +1,14 @@
-const localStorage = require('../utils/storage.js');
 const { cloudCards, cloudSettings, hasCloud } = require('./cloud-api.js');
-const { STORAGE_HIDE_REPAID, STORAGE_VIEW_YM } = require('../utils/constants.js');
 
-function readLocalSettings() {
-  let hideRepaid = false;
-  let viewYm = '';
+function reportError(tag, e, extra = {}) {
+  const msg = e && e.message ? e.message : String(e || 'unknown_error');
+  console.error(`[${tag}]`, msg, extra);
   try {
-    hideRepaid = wx.getStorageSync(STORAGE_HIDE_REPAID) === true;
-    viewYm = wx.getStorageSync(STORAGE_VIEW_YM) || '';
-  } catch (e) {
+    if (typeof wx !== 'undefined' && typeof wx.reportMonitor === 'function') {
+      wx.reportMonitor(tag, 1);
+    }
+  } catch (ignore) {
     // ignore
-  }
-  return { hideRepaid, viewYm };
-}
-
-function writeLocalSettings(patch = {}) {
-  try {
-    if (Object.prototype.hasOwnProperty.call(patch, 'hideRepaid')) {
-      wx.setStorageSync(STORAGE_HIDE_REPAID, !!patch.hideRepaid);
-    }
-    if (Object.prototype.hasOwnProperty.call(patch, 'viewYm')) {
-      wx.setStorageSync(STORAGE_VIEW_YM, patch.viewYm || '');
-    }
-    return true;
-  } catch (e) {
-    return false;
   }
 }
 
@@ -39,96 +23,105 @@ function normalizeCloudCard(doc) {
 
 const dataStore = {
   async listCards() {
-    if (hasCloud()) {
-      try {
-        const list = await cloudCards.list();
-        console.log('[cloudCards.list] ok, count=', Array.isArray(list) ? list.length : 0);
-        return (Array.isArray(list) ? list : []).map(normalizeCloudCard);
-      } catch (e) {
-        console.error('[cloudCards.list] failed, fallback local:', e);
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_list', 'cloud_not_ready');
+      return [];
     }
-    return localStorage.getCards();
+    try {
+      const list = await cloudCards.list();
+      console.log('[cloudCards.list] ok, count=', Array.isArray(list) ? list.length : 0);
+      return (Array.isArray(list) ? list : []).map(normalizeCloudCard);
+    } catch (e) {
+      reportError('cloud_cards_list_failed', e);
+      return [];
+    }
   },
 
   async getCardById(id) {
     if (!id) return null;
-    if (hasCloud()) {
-      try {
-        const card = await cloudCards.get(id);
-        return normalizeCloudCard(card);
-      } catch (e) {
-        // fallback to local
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_get', 'cloud_not_ready', { id });
+      return null;
     }
-    return localStorage.getCardById(id);
+    try {
+      const card = await cloudCards.get(id);
+      return normalizeCloudCard(card);
+    } catch (e) {
+      reportError('cloud_cards_get_failed', e, { id });
+      return null;
+    }
   },
 
   async addCard(card) {
-    if (hasCloud()) {
-      try {
-        await cloudCards.create(card);
-        return true;
-      } catch (e) {
-        return false;
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_create', 'cloud_not_ready');
+      return false;
     }
-    const id = `c_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    return localStorage.addCard({ id, ...card });
+    try {
+      await cloudCards.create(card);
+      return true;
+    } catch (e) {
+      reportError('cloud_cards_create_failed', e);
+      return false;
+    }
   },
 
   async updateCard(id, patch) {
     if (!id) return false;
-    if (hasCloud()) {
-      try {
-        return await cloudCards.update(id, patch);
-      } catch (e) {
-        return false;
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_update', 'cloud_not_ready', { id });
+      return false;
     }
-    return localStorage.updateCard(id, patch);
+    try {
+      return await cloudCards.update(id, patch);
+    } catch (e) {
+      reportError('cloud_cards_update_failed', e, { id });
+      return false;
+    }
   },
 
   async deleteCard(id) {
     if (!id) return false;
-    if (hasCloud()) {
-      try {
-        return await cloudCards.remove(id);
-      } catch (e) {
-        return false;
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_delete', 'cloud_not_ready', { id });
+      return false;
     }
-    return localStorage.deleteCard(id);
+    try {
+      return await cloudCards.remove(id);
+    } catch (e) {
+      reportError('cloud_cards_delete_failed', e, { id });
+      return false;
+    }
   },
 
   async getHomeSettings() {
-    if (hasCloud()) {
-      try {
-        const data = await cloudSettings.get();
-        const result = {
-          hideRepaid: !!data.hideRepaid,
-          viewYm: data.viewYm || '',
-        };
-        writeLocalSettings(result);
-        return result;
-      } catch (e) {
-        // fallback to local
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_settings_get', 'cloud_not_ready');
+      return { hideRepaid: false, viewYm: '' };
     }
-    return readLocalSettings();
+    try {
+      const data = await cloudSettings.get();
+      return {
+        hideRepaid: !!data.hideRepaid,
+        viewYm: data.viewYm || '',
+      };
+    } catch (e) {
+      reportError('cloud_settings_get_failed', e);
+      return { hideRepaid: false, viewYm: '' };
+    }
   },
 
   async setHomeSettings(patch = {}) {
-    let cloudOk = false;
-    if (hasCloud()) {
-      try {
-        cloudOk = await cloudSettings.set(patch);
-      } catch (e) {
-        cloudOk = false;
-      }
+    if (!hasCloud()) {
+      reportError('cloud_not_ready_settings_set', 'cloud_not_ready', patch);
+      return false;
     }
-    const localOk = writeLocalSettings(patch);
-    return cloudOk || localOk;
+    try {
+      return await cloudSettings.set(patch);
+    } catch (e) {
+      reportError('cloud_settings_set_failed', e, patch);
+      return false;
+    }
   },
 };
 

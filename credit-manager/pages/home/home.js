@@ -108,7 +108,6 @@ Page({
 
   async refresh() {
     const raw = await dataStore.listCards();
-    console.log("-----raw", raw);
     const { viewYm, hideRepaid, ymDisplay, isCurrentViewMonth } = this.data;
     const ym = normalizeYm(viewYm || currentYm());
     const all = raw.map((c) => enrichCard(c, ym));
