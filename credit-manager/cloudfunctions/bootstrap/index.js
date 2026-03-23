@@ -5,6 +5,17 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const CARDS = 'credit_cards';
 const SETTINGS = 'user_settings';
+const _runtime = { cloud, db };
+
+function __setRuntime(runtime = {}) {
+  if (runtime.cloud) _runtime.cloud = runtime.cloud;
+  if (runtime.db) _runtime.db = runtime.db;
+}
+
+function __resetRuntime() {
+  _runtime.cloud = cloud;
+  _runtime.db = db;
+}
 
 const DEMO_CARDS = [
   { bank_code: 'CMB', last4: '8888', cardholder_name: '李雷', bill_day: 5, due_day: 23 },
@@ -14,7 +25,7 @@ const DEMO_CARDS = [
 
 async function ensureCollection(name) {
   try {
-    await db.createCollection(name);
+    await _runtime.db.createCollection(name);
   } catch (e) {
     const msg = String((e && e.message) || e || '');
     // 已存在时忽略，其他错误继续抛出
@@ -25,7 +36,7 @@ async function ensureCollection(name) {
 }
 
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext();
+  const wxContext = _runtime.cloud.getWXContext();
   const openid = wxContext.OPENID;
   const withDemo = !!(event && event.withDemo);
 
@@ -34,31 +45,31 @@ exports.main = async (event, context) => {
     await ensureCollection(SETTINGS);
     await ensureCollection(CARDS);
 
-    const existedSetting = await db.collection(SETTINGS).where({ _openid: openid }).limit(1).get();
+    const existedSetting = await _runtime.db.collection(SETTINGS).where({ _openid: openid }).limit(1).get();
     if (!existedSetting.data || !existedSetting.data.length) {
-      await db.collection(SETTINGS).add({
+      await _runtime.db.collection(SETTINGS).add({
         data: {
           hideRepaid: false,
           viewYm: '',
-          created_at: db.serverDate(),
-          updated_at: db.serverDate(),
+          created_at: _runtime.db.serverDate(),
+          updated_at: _runtime.db.serverDate(),
         },
       });
     }
 
     if (withDemo) {
-      const cardsRes = await db.collection(CARDS).where({ _openid: openid }).limit(1).get();
+      const cardsRes = await _runtime.db.collection(CARDS).where({ _openid: openid }).limit(1).get();
       if (!cardsRes.data || !cardsRes.data.length) {
         for (const c of DEMO_CARDS) {
-          await db.collection(CARDS).add({
+          await _runtime.db.collection(CARDS).add({
             data: {
               ...c,
               open_id: openid,
               owner_openid: openid,
               custom_bank_name: '',
               repaid_months: {},
-              created_at: db.serverDate(),
-              updated_at: db.serverDate(),
+              created_at: _runtime.db.serverDate(),
+              updated_at: _runtime.db.serverDate(),
             },
           });
         }
@@ -74,4 +85,11 @@ exports.main = async (event, context) => {
   } catch (e) {
     return { ok: false, error: e.message || 'bootstrap_failed' };
   }
+};
+
+exports.__test = {
+  ensureCollection,
+  DEMO_CARDS,
+  __setRuntime,
+  __resetRuntime,
 };

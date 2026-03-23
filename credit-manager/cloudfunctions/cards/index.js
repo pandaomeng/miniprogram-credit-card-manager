@@ -4,6 +4,17 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const CARDS = 'credit_cards';
+const _runtime = { cloud, db };
+
+function __setRuntime(runtime = {}) {
+  if (runtime.cloud) _runtime.cloud = runtime.cloud;
+  if (runtime.db) _runtime.db = runtime.db;
+}
+
+function __resetRuntime() {
+  _runtime.cloud = cloud;
+  _runtime.db = db;
+}
 
 function toInt(v, fallback) {
   const n = parseInt(v, 10);
@@ -32,7 +43,10 @@ function cleanPatch(patch = {}) {
   if (out.repaid_months && typeof out.repaid_months === 'object') {
     const cleaned = {};
     Object.keys(out.repaid_months).forEach((k) => {
-      if (/^\d{4}-\d{2}$/.test(k) && out.repaid_months[k]) cleaned[k] = true;
+      const m = k.match(/^(\d{4})-(\d{2})$/);
+      if (!m || !out.repaid_months[k]) return;
+      const mm = parseInt(m[2], 10);
+      if (mm >= 1 && mm <= 12) cleaned[k] = true;
     });
     out.repaid_months = cleaned;
   }
@@ -41,30 +55,30 @@ function cleanPatch(patch = {}) {
 
 async function listCards(openid) {
   // 1) 优先读取当前调用用户的数据
-  const mine = await db.collection(CARDS).where({ _openid: openid }).get();
+  const mine = await _runtime.db.collection(CARDS).where({ _openid: openid }).get();
   if (mine.data && mine.data.length) return mine.data;
 
   // 2) 兼容早期/手工写入（可能没有 _openid）
-  const legacy = await db.collection(CARDS).where({ _openid: null }).get();
+  const legacy = await _runtime.db.collection(CARDS).where({ _openid: null }).get();
   if (legacy.data && legacy.data.length) return legacy.data;
 
   // 3) 兜底：直接拉取集合（单人使用场景便于排障）
-  const all = await db.collection(CARDS).get();
+  const all = await _runtime.db.collection(CARDS).get();
   return all.data || [];
 }
 
 async function getCard(openid, id) {
-  const res = await db.collection(CARDS).where({ _openid: openid, _id: id }).limit(1).get();
+  const res = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).limit(1).get();
   return (res.data && res.data[0]) || null;
 }
 
 async function createCard(openid, payload) {
-  const now = db.serverDate();
+  const now = _runtime.db.serverDate();
   const body = cleanPatch(payload);
   const required = ['bank_code', 'last4', 'bill_day', 'due_day'];
   const miss = required.find((k) => !body[k]);
   if (miss) throw new Error(`missing:${miss}`);
-  const add = await db.collection(CARDS).add({
+  const add = await _runtime.db.collection(CARDS).add({
     data: {
       ...body,
       open_id: openid,
@@ -79,18 +93,18 @@ async function createCard(openid, payload) {
 
 async function updateCard(openid, id, patch) {
   const body = cleanPatch(patch);
-  body.updated_at = db.serverDate();
-  const r = await db.collection(CARDS).where({ _openid: openid, _id: id }).update({ data: body });
+  body.updated_at = _runtime.db.serverDate();
+  const r = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).update({ data: body });
   return r.stats && r.stats.updated > 0;
 }
 
 async function deleteCard(openid, id) {
-  const r = await db.collection(CARDS).where({ _openid: openid, _id: id }).remove();
+  const r = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).remove();
   return r.stats && r.stats.removed > 0;
 }
 
 exports.main = async (event, context) => {
-  const wxContext = cloud.getWXContext();
+  const wxContext = _runtime.cloud.getWXContext();
   const openid = wxContext.OPENID;
   const action = event && event.action;
 
@@ -117,4 +131,16 @@ exports.main = async (event, context) => {
   } catch (e) {
     return { ok: false, error: e.message || 'cards_failed' };
   }
+};
+
+exports.__test = {
+  toInt,
+  cleanPatch,
+  listCards,
+  getCard,
+  createCard,
+  updateCard,
+  deleteCard,
+  __setRuntime,
+  __resetRuntime,
 };
