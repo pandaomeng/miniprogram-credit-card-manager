@@ -18,9 +18,7 @@ function __resetRuntime() {
 }
 
 const DEMO_CARDS = [
-  { bank_code: 'CMB', last4: '8888', cardholder_name: '李雷', bill_day: 5, due_day: 23 },
-  { bank_code: 'CCB', last4: '6666', cardholder_name: '李雷', bill_day: 10, due_day: 28 },
-  { bank_code: 'ICBC', last4: '1234', cardholder_name: '李雷', bill_day: 1, due_day: 20 },
+  
 ];
 
 async function ensureCollection(name) {

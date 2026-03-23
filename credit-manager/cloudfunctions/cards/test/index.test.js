@@ -154,6 +154,88 @@ test('a creates one card, list is visible to a and hidden from b', async () => {
   mod.__test.__resetRuntime();
 });
 
+test('update repaid status: paid then unpaid, get returns expected state', async () => {
+  const store = [];
+  const db = {
+    serverDate: () => 'NOW',
+    collection() {
+      return {
+        async add({ data }) {
+          const doc = { ...data, _id: `id-${store.length + 1}` };
+          store.push(doc);
+          return { _id: doc._id };
+        },
+        where(query) {
+          return {
+            limit() { return this; },
+            async get() {
+              if (query.owner_openid !== undefined && query._id !== undefined) {
+                return {
+                  data: store.filter(
+                    (d) => d.owner_openid === query.owner_openid && d._id === query._id,
+                  ),
+                };
+              }
+              if (query.owner_openid !== undefined) {
+                return { data: store.filter((d) => d.owner_openid === query.owner_openid) };
+              }
+              return { data: [] };
+            },
+            async update({ data }) {
+              const idx = store.findIndex(
+                (d) => d.owner_openid === query.owner_openid && d._id === query._id,
+              );
+              if (idx < 0) return { stats: { updated: 0 } };
+              store[idx] = { ...store[idx], ...data };
+              return { stats: { updated: 1 } };
+            },
+            async remove() { return { stats: { removed: 1 } }; },
+          };
+        },
+        async get() {
+          return { data: store.slice() };
+        },
+      };
+    },
+  };
+
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'a-user' }) }, db });
+
+  // 1) 创建卡片
+  let r = await mod.main({
+    action: 'create',
+    payload: { bank_code: 'CMB', last4: '1234', bill_day: 5, due_day: 23 },
+  });
+  assert.equal(r.ok, true);
+  const cardId = r.id;
+
+  // 2) 更新为已还款
+  r = await mod.main({
+    action: 'update',
+    id: cardId,
+    patch: { repaid_months: { '2026-03': true } },
+  });
+  assert.equal(r.ok, true);
+
+  r = await mod.main({ action: 'get', id: cardId });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.data.repaid_months, { '2026-03': true });
+
+  // 3) 再更新为未还款（清空月份）
+  r = await mod.main({
+    action: 'update',
+    id: cardId,
+    patch: { repaid_months: {} },
+  });
+  assert.equal(r.ok, true);
+
+  r = await mod.main({ action: 'get', id: cardId });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.data.repaid_months, {});
+
+  mod.__test.__resetRuntime();
+});
+
 test('update/delete and unknown action', async () => {
   const db = {
     serverDate: () => 'NOW',
