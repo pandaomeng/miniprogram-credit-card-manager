@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 
 const mod = require('../index.js');
 
-function makeDbForList({ mine = [], legacy = [], all = [] } = {}) {
+function makeDbForList({ mine = [] } = {}) {
   return {
     serverDate: () => 'NOW',
     collection() {
@@ -13,7 +13,6 @@ function makeDbForList({ mine = [], legacy = [], all = [] } = {}) {
             async get() {
               if (Object.prototype.hasOwnProperty.call(query, '_openid')) {
                 if (query._openid === 'u1') return { data: mine };
-                if (query._openid === null) return { data: legacy };
               }
               return { data: [] };
             },
@@ -22,7 +21,7 @@ function makeDbForList({ mine = [], legacy = [], all = [] } = {}) {
             async remove() { return { stats: { removed: 1 } }; },
           };
         },
-        async get() { return { data: all }; },
+        async get() { return { data: [] }; },
         async add({ data }) { return { _id: 'new-id', data }; },
       };
     },
@@ -49,21 +48,17 @@ test('cleanPatch keeps/normalizes allowed fields', () => {
 });
 
 test('listCards returns mine first', async () => {
-  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db: makeDbForList({ mine: [{ _id: 'a' }], legacy: [{ _id: 'b' }], all: [{ _id: 'c' }] }) });
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db: makeDbForList({ mine: [{ _id: 'a' }] }) });
   const res = await mod.main({ action: 'list' });
   assert.equal(res.ok, true);
   assert.deepEqual(res.data, [{ _id: 'a' }]);
   mod.__test.__resetRuntime();
 });
 
-test('listCards falls back to legacy then all', async () => {
-  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db: makeDbForList({ mine: [], legacy: [{ _id: 'legacy' }], all: [{ _id: 'all' }] }) });
-  let res = await mod.main({ action: 'list' });
-  assert.deepEqual(res.data, [{ _id: 'legacy' }]);
-
-  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db: makeDbForList({ mine: [], legacy: [], all: [{ _id: 'all' }] }) });
-  res = await mod.main({ action: 'list' });
-  assert.deepEqual(res.data, [{ _id: 'all' }]);
+test('listCards returns empty when current user has no cards', async () => {
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db: makeDbForList({ mine: [] }) });
+  const res = await mod.main({ action: 'list' });
+  assert.deepEqual(res.data, []);
   mod.__test.__resetRuntime();
 });
 
@@ -102,6 +97,60 @@ test('create action writes open_id/owner_openid', async () => {
   assert.equal(res.ok, true);
   assert.equal(created.open_id, 'u1');
   assert.equal(created.owner_openid, 'u1');
+  mod.__test.__resetRuntime();
+});
+
+test('a creates one card, list is visible to a and hidden from b', async () => {
+  const store = [];
+  const db = {
+    serverDate: () => 'NOW',
+    collection() {
+      return {
+        async add({ data }) {
+          const doc = { ...data, _id: `id-${store.length + 1}`, _openid: data.owner_openid };
+          store.push(doc);
+          return { _id: doc._id };
+        },
+        where(query) {
+          return {
+            limit() { return this; },
+            async get() {
+              if (query._openid !== undefined) {
+                return { data: store.filter((d) => d._openid === query._openid) };
+              }
+              return { data: [] };
+            },
+            async update() { return { stats: { updated: 1 } }; },
+            async remove() { return { stats: { removed: 1 } }; },
+          };
+        },
+        async get() {
+          return { data: store.slice() };
+        },
+      };
+    },
+  };
+
+  // A 创建一张卡
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'a-user' }) }, db });
+  let r = await mod.main({
+    action: 'create',
+    payload: { bank_code: 'CMB', last4: '1234', bill_day: 5, due_day: 23 },
+  });
+  assert.equal(r.ok, true);
+
+  // A list 能查到
+  r = await mod.main({ action: 'list' });
+  assert.equal(r.ok, true);
+  assert.equal(r.data.length, 1);
+  assert.equal(r.data[0]._openid, 'a-user');
+
+  // B list 查不到 A 的卡
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'b-user' }) }, db });
+  r = await mod.main({ action: 'list' });
+  assert.equal(r.ok, true);
+  assert.equal(r.data.length, 0);
+
   mod.__test.__resetRuntime();
 });
 

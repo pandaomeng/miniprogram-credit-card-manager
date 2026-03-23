@@ -54,17 +54,10 @@ function cleanPatch(patch = {}) {
 }
 
 async function listCards(openid) {
-  // 1) 优先读取当前调用用户的数据
+  // 仅返回当前调用用户的数据
   const mine = await _runtime.db.collection(CARDS).where({ _openid: openid }).get();
   if (mine.data && mine.data.length) return mine.data;
-
-  // 2) 兼容早期/手工写入（可能没有 _openid）
-  const legacy = await _runtime.db.collection(CARDS).where({ _openid: null }).get();
-  if (legacy.data && legacy.data.length) return legacy.data;
-
-  // 3) 兜底：直接拉取集合（单人使用场景便于排障）
-  const all = await _runtime.db.collection(CARDS).get();
-  return all.data || [];
+  return [];
 }
 
 async function getCard(openid, id) {
