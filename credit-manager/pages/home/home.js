@@ -1,4 +1,4 @@
-const storage = require('../../utils/storage.js');
+const dataStore = require('../../services/data-store.js');
 const {
   enrichCard,
   currentYm,
@@ -6,7 +6,6 @@ const {
   ymDisplayLabel,
   migrateRepaidMonths,
 } = require('../../utils/card-helpers.js');
-const { STORAGE_HIDE_REPAID, STORAGE_VIEW_YM } = require('../../utils/constants.js');
 
 const YM_PICK_START_YEAR = 2018;
 const YM_PICK_END_YEAR = 2037;
@@ -35,18 +34,6 @@ function multiIndexToYm(yi, mi) {
   const y = YM_PICK_START_YEAR + yi;
   const m = String(mi + 1).padStart(2, '0');
   return `${y}-${m}`;
-}
-
-function readStoredViewYm() {
-  try {
-    const s = wx.getStorageSync(STORAGE_VIEW_YM);
-    if (typeof s === 'string' && /^\d{4}-\d{2}$/.test(s)) {
-      return normalizeYm(s);
-    }
-  } catch (e) {
-    /* ignore */
-  }
-  return currentYm();
 }
 
 Page({
@@ -79,18 +66,11 @@ Page({
     } catch (e) {
       navRightPaddingPx = 96;
     }
-    let hideRepaid = false;
-    try {
-      hideRepaid = wx.getStorageSync(STORAGE_HIDE_REPAID) === true;
-    } catch (e) {
-      hideRepaid = false;
-    }
-    const viewYm = readStoredViewYm();
+
     this.setData({
       statusBarHeight,
       navRightPaddingPx,
-      hideRepaid,
-      ...this._ymUi(viewYm),
+      ...this._ymUi(currentYm()),
     });
   },
 
@@ -105,20 +85,26 @@ Page({
     };
   },
 
-  _persistViewYm(ym) {
-    try {
-      wx.setStorageSync(STORAGE_VIEW_YM, normalizeYm(ym));
-    } catch (e) {
-      wx.showToast({ title: '月份未保存', icon: 'none' });
-    }
+  async _loadSettingsAndApply() {
+    const settings = await dataStore.getHomeSettings();
+    const ym = normalizeYm(settings.viewYm || currentYm());
+    this.setData({
+      hideRepaid: !!settings.hideRepaid,
+      ...this._ymUi(ym),
+    });
   },
 
   onShow() {
-    this.refresh();
+    this.initAndRefresh();
   },
 
-  refresh() {
-    const raw = storage.getCards();
+  async initAndRefresh() {
+    await this._loadSettingsAndApply();
+    await this.refresh();
+  },
+
+  async refresh() {
+    const raw = await dataStore.listCards();
     const { viewYm, hideRepaid, ymDisplay, isCurrentViewMonth } = this.data;
     const ym = normalizeYm(viewYm || currentYm());
     const all = raw.map((c) => enrichCard(c, ym));
@@ -133,46 +119,50 @@ Page({
     });
   },
 
-  onYmMultiChange(e) {
+  async onYmMultiChange(e) {
     const idx = e.detail.value;
     const yi = Number(idx[0]);
     const mi = Number(idx[1]);
     const next = multiIndexToYm(yi, mi);
-    this._persistViewYm(next);
+    const ok = await dataStore.setHomeSettings({ viewYm: next });
+    if (!ok) {
+      wx.showToast({ title: '月份未保存', icon: 'none' });
+    }
     this.setData(this._ymUi(next), () => this.refresh());
   },
 
-  onGoCurrentMonth() {
+  async onGoCurrentMonth() {
     const n = currentYm();
-    this._persistViewYm(n);
+    const ok = await dataStore.setHomeSettings({ viewYm: n });
+    if (!ok) {
+      wx.showToast({ title: '月份未保存', icon: 'none' });
+    }
     this.setData(this._ymUi(n), () => this.refresh());
   },
 
-  onHideRepaidChange(e) {
+  async onHideRepaidChange(e) {
     const hideRepaid = !!e.detail.value;
-    try {
-      wx.setStorageSync(STORAGE_HIDE_REPAID, hideRepaid);
-    } catch (err) {
+    const ok = await dataStore.setHomeSettings({ hideRepaid });
+    if (!ok) {
       wx.showToast({ title: '设置未保存', icon: 'none' });
       return;
     }
     this.setData({ hideRepaid }, () => this.refresh());
   },
 
-  onShowRepaidCards() {
-    try {
-      wx.setStorageSync(STORAGE_HIDE_REPAID, false);
-    } catch (err) {
+  async onShowRepaidCards() {
+    const ok = await dataStore.setHomeSettings({ hideRepaid: false });
+    if (!ok) {
       wx.showToast({ title: '设置未保存', icon: 'none' });
       return;
     }
     this.setData({ hideRepaid: false }, () => this.refresh());
   },
 
-  onToggleRepaid(e) {
+  async onToggleRepaid(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    const raw = storage.getCardById(id);
+    const raw = await dataStore.getCardById(id);
     if (!raw) return;
     const ym = normalizeYm(this.data.viewYm || currentYm());
     const card = migrateRepaidMonths(raw);
@@ -182,15 +172,12 @@ Page({
     } else {
       months[ym] = true;
     }
-    if (
-      !storage.updateCard(id, {
-        repaid_months: months,
-        repaid: false,
-        repaid_for_due_ymd: '',
-      })
-    ) {
-      return;
-    }
+    const ok = await dataStore.updateCard(id, {
+      repaid_months: months,
+      repaid: false,
+      repaid_for_due_ymd: '',
+    });
+    if (!ok) return;
     this.refresh();
   },
 
@@ -213,9 +200,10 @@ Page({
       content: '确定从列表中移除该卡片？本地数据将删除且不可恢复。',
       confirmText: '删除',
       confirmColor: '#c62828',
-      success: (res) => {
+      success: async (res) => {
         if (!res.confirm) return;
-        if (!storage.deleteCard(id)) return;
+        const ok = await dataStore.deleteCard(id);
+        if (!ok) return;
         wx.showToast({ title: '已删除', icon: 'success' });
         this.refresh();
       },

@@ -1,4 +1,4 @@
-const storage = require('../../utils/storage.js');
+const dataStore = require('../../services/data-store.js');
 const {
   enrichCard,
   currentYm,
@@ -31,12 +31,16 @@ Page({
   },
 
   onShow() {
+    this.refresh();
+  },
+
+  async refresh() {
     const { id, viewYm } = this.data;
     if (!id) {
       wx.navigateBack();
       return;
     }
-    const raw = storage.getCardById(id);
+    const raw = await dataStore.getCardById(id);
     if (!raw) {
       wx.showToast({ title: '卡片不存在', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 400);
@@ -53,11 +57,11 @@ Page({
     });
   },
 
-  onRepaidChange(e) {
+  async onRepaidChange(e) {
     const want = !!e.detail.value;
     const { id, viewYm } = this.data;
     const ym = normalizeYm(viewYm || currentYm());
-    const raw = storage.getCardById(id);
+    const raw = await dataStore.getCardById(id);
     if (!raw) return;
     const card = migrateRepaidMonths(raw);
     const months = { ...card.repaid_months };
@@ -66,16 +70,13 @@ Page({
     } else {
       delete months[ym];
     }
-    if (
-      !storage.updateCard(id, {
-        repaid_months: months,
-        repaid: false,
-        repaid_for_due_ymd: '',
-      })
-    ) {
-      return;
-    }
-    const next = storage.getCardById(id);
+    const ok = await dataStore.updateCard(id, {
+      repaid_months: months,
+      repaid: false,
+      repaid_for_due_ymd: '',
+    });
+    if (!ok) return;
+    const next = await dataStore.getCardById(id);
     const isCurrentViewMonth = ym === currentYm();
     this.setData({
       card: enrichCard(next, ym),
@@ -95,9 +96,10 @@ Page({
       content: '确定删除该卡片？此操作不可恢复。',
       confirmText: '删除',
       confirmColor: '#c62828',
-      success: (res) => {
+      success: async (res) => {
         if (!res.confirm) return;
-        if (!storage.deleteCard(id)) return;
+        const ok = await dataStore.deleteCard(id);
+        if (!ok) return;
         wx.showToast({ title: '已删除', icon: 'success' });
         setTimeout(() => wx.reLaunch({ url: '/pages/home/home' }), 400);
       },

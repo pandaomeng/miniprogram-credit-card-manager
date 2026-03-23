@@ -4,7 +4,7 @@ const {
   formatCardInputDisplay,
   isDueAfterBill,
 } = require('../../utils/card-helpers.js');
-const storage = require('../../utils/storage.js');
+const dataStore = require('../../services/data-store.js');
 
 const DAY_LABELS = Array.from({ length: 28 }, (_, i) => `${i + 1} 日`);
 
@@ -47,8 +47,8 @@ Page({
     }
   },
 
-  prefill(id) {
-    const card = storage.getCardById(id);
+  async prefill(id) {
+    const card = await dataStore.getCardById(id);
     if (!card) {
       wx.showToast({ title: '卡片不存在', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 400);
@@ -191,7 +191,7 @@ Page({
     this.setData({ dueIndex }, () => this.recompute());
   },
 
-  onSave() {
+  async onSave() {
     if (!this.data.canSubmit) {
       wx.showToast({ title: '请完善表单', icon: 'none' });
       return;
@@ -222,10 +222,9 @@ Page({
 
     let ok = false;
     if (mode === 'edit') {
-      ok = storage.updateCard(editId, payload);
+      ok = await dataStore.updateCard(editId, payload);
     } else {
-      const id = `c_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-      ok = storage.addCard({ id, ...payload });
+      ok = await dataStore.addCard(payload);
     }
     if (!ok) return;
     wx.showToast({ title: '已保存', icon: 'success' });

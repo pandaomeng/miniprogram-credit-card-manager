@@ -16,7 +16,9 @@ App({
       wx.cloud.callFunction({
         name: 'bootstrap',
         data: { withDemo: true },
-      }).catch(() => {});
+      }).catch((e) => {
+        console.error('[bootstrap] failed:', e);
+      });
     }
   },
   globalData: {
