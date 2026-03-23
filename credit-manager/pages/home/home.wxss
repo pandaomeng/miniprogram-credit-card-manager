@@ -139,6 +139,16 @@
   border-radius: 999rpx;
 }
 
+.list-footer-add {
+  margin-top: 40rpx;
+  padding-top: 8rpx;
+}
+
+.list-add-btn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .card-row {
   display: flex;
   align-items: flex-start;

@@ -71,6 +71,10 @@
       <text class="filter-empty-sub">已开启「隐藏已还款」，当前没有待还卡片。关闭开关可重新显示。</text>
       <view class="filter-empty-btn" bindtap="onShowRepaidCards">显示已还款卡片</view>
     </view>
+
+    <view class="list-footer-add">
+      <view class="btn-primary list-add-btn" bindtap="onAdd">添加信用卡</view>
+    </view>
   </view>
 
   <view class="empty" wx:else>
