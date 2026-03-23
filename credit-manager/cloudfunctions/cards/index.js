@@ -67,6 +67,7 @@ async function createCard(openid, payload) {
   const add = await db.collection(CARDS).add({
     data: {
       ...body,
+      open_id: openid,
       owner_openid: openid,
       repaid_months: body.repaid_months || {},
       created_at: now,

@@ -53,6 +53,8 @@ exports.main = async (event, context) => {
           await db.collection(CARDS).add({
             data: {
               ...c,
+              open_id: openid,
+              owner_openid: openid,
               custom_bank_name: '',
               repaid_months: {},
               created_at: db.serverDate(),
