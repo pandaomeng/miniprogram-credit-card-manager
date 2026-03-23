@@ -11,8 +11,8 @@ function makeDbForList({ mine = [] } = {}) {
         where(query) {
           return {
             async get() {
-              if (Object.prototype.hasOwnProperty.call(query, '_openid')) {
-                if (query._openid === 'u1') return { data: mine };
+              if (Object.prototype.hasOwnProperty.call(query, 'owner_openid')) {
+                if (query.owner_openid === 'u1') return { data: mine };
               }
               return { data: [] };
             },
@@ -107,7 +107,7 @@ test('a creates one card, list is visible to a and hidden from b', async () => {
     collection() {
       return {
         async add({ data }) {
-          const doc = { ...data, _id: `id-${store.length + 1}`, _openid: data.owner_openid };
+          const doc = { ...data, _id: `id-${store.length + 1}` };
           store.push(doc);
           return { _id: doc._id };
         },
@@ -115,8 +115,8 @@ test('a creates one card, list is visible to a and hidden from b', async () => {
           return {
             limit() { return this; },
             async get() {
-              if (query._openid !== undefined) {
-                return { data: store.filter((d) => d._openid === query._openid) };
+              if (query.owner_openid !== undefined) {
+                return { data: store.filter((d) => d.owner_openid === query.owner_openid) };
               }
               return { data: [] };
             },
@@ -143,7 +143,7 @@ test('a creates one card, list is visible to a and hidden from b', async () => {
   r = await mod.main({ action: 'list' });
   assert.equal(r.ok, true);
   assert.equal(r.data.length, 1);
-  assert.equal(r.data[0]._openid, 'a-user');
+  assert.equal(r.data[0].owner_openid, 'a-user');
 
   // B list 查不到 A 的卡
   mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'b-user' }) }, db });

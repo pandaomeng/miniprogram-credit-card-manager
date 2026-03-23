@@ -86,9 +86,7 @@ Page({
   },
 
   async _loadSettingsAndApply() {
-    console.log("-----loadSettingsAndApply before");
     const settings = await dataStore.getHomeSettings();
-    console.log("-----loadSettingsAndApply after");
 
     const ym = normalizeYm(settings.viewYm || currentYm());
     this.setData({
@@ -177,8 +175,6 @@ Page({
     }
     const ok = await dataStore.updateCard(id, {
       repaid_months: months,
-      repaid: false,
-      repaid_for_due_ymd: '',
     });
     if (!ok) {
       wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });

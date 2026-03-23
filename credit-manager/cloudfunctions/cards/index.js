@@ -54,14 +54,12 @@ function cleanPatch(patch = {}) {
 }
 
 async function listCards(openid) {
-  // 仅返回当前调用用户的数据
-  const mine = await _runtime.db.collection(CARDS).where({ _openid: openid }).get();
-  if (mine.data && mine.data.length) return mine.data;
-  return [];
+  const mine = await _runtime.db.collection(CARDS).where({ owner_openid: openid }).get();
+  return (mine.data && mine.data.length) ? mine.data : [];
 }
 
 async function getCard(openid, id) {
-  const res = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).limit(1).get();
+  const res = await _runtime.db.collection(CARDS).where({ owner_openid: openid, _id: id }).limit(1).get();
   return (res.data && res.data[0]) || null;
 }
 
@@ -87,13 +85,13 @@ async function createCard(openid, payload) {
 async function updateCard(openid, id, patch) {
   const body = cleanPatch(patch);
   body.updated_at = _runtime.db.serverDate();
-  const r = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).update({ data: body });
-  return r.stats && r.stats.updated > 0;
+  const r = await _runtime.db.collection(CARDS).where({ owner_openid: openid, _id: id }).update({ data: body });
+  return !!(r.stats && r.stats.updated > 0);
 }
 
 async function deleteCard(openid, id) {
-  const r = await _runtime.db.collection(CARDS).where({ _openid: openid, _id: id }).remove();
-  return r.stats && r.stats.removed > 0;
+  const r = await _runtime.db.collection(CARDS).where({ owner_openid: openid, _id: id }).remove();
+  return !!(r.stats && r.stats.removed > 0);
 }
 
 exports.main = async (event, context) => {

@@ -72,8 +72,6 @@ Page({
     }
     const ok = await dataStore.updateCard(id, {
       repaid_months: months,
-      repaid: false,
-      repaid_for_due_ymd: '',
     });
     if (!ok) {
       wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
