@@ -44,7 +44,10 @@
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "cloudFunctionTemplateRoot": "cloudfunctions/",
+    "cloudbaseRoot": "cloudfunctions/",
+    "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
   },
   "compileType": "miniprogram",
   "libVersion": "3.5.5",
@@ -52,5 +55,7 @@
   "projectname": "credit-manager",
   "condition": {},
   "simulatorPluginLibVersion": {},
-  "editorSetting": {}
+  "editorSetting": {},
+  "miniprogramRoot": "./",
+  "cloudfunctionRoot": "cloudfunctions/"
 }

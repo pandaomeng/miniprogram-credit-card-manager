@@ -18,6 +18,11 @@
     "checkInvalidKey": true,
     "ignoreDevUnusedFiles": true,
     "bigPackageSizeSupport": false,
-    "useIsolateContext": true
-  }
+    "useIsolateContext": true,
+    "cloudFunctionTemplateRoot": "cloudfunctions/",
+    "cloudbaseRoot": "cloudfunctions/",
+    "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
+  },
+  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
 }
