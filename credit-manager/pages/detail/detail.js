@@ -75,7 +75,10 @@ Page({
       repaid: false,
       repaid_for_due_ymd: '',
     });
-    if (!ok) return;
+    if (!ok) {
+      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+      return;
+    }
     const next = await dataStore.getCardById(id);
     const isCurrentViewMonth = ym === currentYm();
     this.setData({
@@ -99,7 +102,10 @@ Page({
       success: async (res) => {
         if (!res.confirm) return;
         const ok = await dataStore.deleteCard(id);
-        if (!ok) return;
+        if (!ok) {
+          wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+          return;
+        }
         wx.showToast({ title: '已删除', icon: 'success' });
         setTimeout(() => wx.reLaunch({ url: '/pages/home/home' }), 400);
       },

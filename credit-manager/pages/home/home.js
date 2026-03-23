@@ -86,7 +86,10 @@ Page({
   },
 
   async _loadSettingsAndApply() {
+    console.log("-----loadSettingsAndApply before");
     const settings = await dataStore.getHomeSettings();
+    console.log("-----loadSettingsAndApply after");
+
     const ym = normalizeYm(settings.viewYm || currentYm());
     this.setData({
       hideRepaid: !!settings.hideRepaid,
@@ -105,6 +108,7 @@ Page({
 
   async refresh() {
     const raw = await dataStore.listCards();
+    console.log("-----raw", raw);
     const { viewYm, hideRepaid, ymDisplay, isCurrentViewMonth } = this.data;
     const ym = normalizeYm(viewYm || currentYm());
     const all = raw.map((c) => enrichCard(c, ym));
@@ -177,7 +181,10 @@ Page({
       repaid: false,
       repaid_for_due_ymd: '',
     });
-    if (!ok) return;
+    if (!ok) {
+      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+      return;
+    }
     this.refresh();
   },
 
@@ -203,7 +210,10 @@ Page({
       success: async (res) => {
         if (!res.confirm) return;
         const ok = await dataStore.deleteCard(id);
-        if (!ok) return;
+        if (!ok) {
+          wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+          return;
+        }
         wx.showToast({ title: '已删除', icon: 'success' });
         this.refresh();
       },

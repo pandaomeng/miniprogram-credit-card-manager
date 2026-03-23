@@ -226,7 +226,10 @@ Page({
     } else {
       ok = await dataStore.addCard(payload);
     }
-    if (!ok) return;
+    if (!ok) {
+      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+      return;
+    }
     wx.showToast({ title: '已保存', icon: 'success' });
     setTimeout(() => wx.navigateBack(), 450);
   },

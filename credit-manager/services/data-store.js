@@ -42,9 +42,10 @@ const dataStore = {
     if (hasCloud()) {
       try {
         const list = await cloudCards.list();
+        console.log('[cloudCards.list] ok, count=', Array.isArray(list) ? list.length : 0);
         return (Array.isArray(list) ? list : []).map(normalizeCloudCard);
       } catch (e) {
-        // fallback to local
+        console.error('[cloudCards.list] failed, fallback local:', e);
       }
     }
     return localStorage.getCards();
@@ -69,7 +70,7 @@ const dataStore = {
         await cloudCards.create(card);
         return true;
       } catch (e) {
-        // fallback to local
+        return false;
       }
     }
     const id = `c_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -82,7 +83,7 @@ const dataStore = {
       try {
         return await cloudCards.update(id, patch);
       } catch (e) {
-        // fallback to local
+        return false;
       }
     }
     return localStorage.updateCard(id, patch);
@@ -94,7 +95,7 @@ const dataStore = {
       try {
         return await cloudCards.remove(id);
       } catch (e) {
-        // fallback to local
+        return false;
       }
     }
     return localStorage.deleteCard(id);

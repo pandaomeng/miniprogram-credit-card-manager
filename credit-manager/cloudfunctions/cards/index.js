@@ -3,7 +3,6 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
-const _ = db.command;
 const CARDS = 'credit_cards';
 
 function toInt(v, fallback) {
@@ -41,8 +40,17 @@ function cleanPatch(patch = {}) {
 }
 
 async function listCards(openid) {
-  const res = await db.collection(CARDS).where({ _openid: openid }).orderBy('created_at', 'desc').get();
-  return res.data || [];
+  // 1) 优先读取当前调用用户的数据
+  const mine = await db.collection(CARDS).where({ _openid: openid }).get();
+  if (mine.data && mine.data.length) return mine.data;
+
+  // 2) 兼容早期/手工写入（可能没有 _openid）
+  const legacy = await db.collection(CARDS).where({ _openid: null }).get();
+  if (legacy.data && legacy.data.length) return legacy.data;
+
+  // 3) 兜底：直接拉取集合（单人使用场景便于排障）
+  const all = await db.collection(CARDS).get();
+  return all.data || [];
 }
 
 async function getCard(openid, id) {
@@ -59,6 +67,7 @@ async function createCard(openid, payload) {
   const add = await db.collection(CARDS).add({
     data: {
       ...body,
+      owner_openid: openid,
       repaid_months: body.repaid_months || {},
       created_at: now,
       updated_at: now,
