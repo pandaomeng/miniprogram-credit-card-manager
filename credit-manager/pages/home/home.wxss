@@ -39,6 +39,10 @@
   padding: 24rpx 24rpx calc(32rpx + env(safe-area-inset-bottom));
 }
 
+.body-loading {
+  min-height: 240rpx;
+}
+
 .ym-bar {
   display: flex;
   align-items: center;

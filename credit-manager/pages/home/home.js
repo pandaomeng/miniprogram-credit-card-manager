@@ -50,6 +50,7 @@ Page({
     isCurrentViewMonth: true,
     repaidLineText: '本月已标记还款',
     openSwipeId: '',
+    firstLoading: true,
   },
 
   onLoad() {
@@ -101,8 +102,14 @@ Page({
   },
 
   async initAndRefresh() {
-    await this._loadSettingsAndApply();
-    await this.refresh();
+    try {
+      await this._loadSettingsAndApply();
+      await this.refresh();
+    } finally {
+      if (this.data.firstLoading) {
+        this.setData({ firstLoading: false });
+      }
+    }
   },
 
   async refresh() {

@@ -6,7 +6,9 @@
     </view>
   </view>
 
-  <view class="body" wx:if="{{totalCount > 0}}">
+  <view class="body body-loading" wx:if="{{firstLoading}}"></view>
+
+  <view class="body" wx:elif="{{totalCount > 0}}">
     <view class="ym-bar">
       <picker mode="multiSelector" range="{{ymMultiRange}}" value="{{ymMultiIndex}}" bindchange="onYmMultiChange">
         <view class="ym-picker-trigger">
