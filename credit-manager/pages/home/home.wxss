@@ -348,4 +348,10 @@
 .empty-btn {
   width: 100%;
   max-width: 520rpx;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-sizing: border-box;
 }
