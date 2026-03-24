@@ -44,9 +44,9 @@ function cleanPatch(patch = {}) {
     const cleaned = {};
     Object.keys(out.repaid_months).forEach((k) => {
       const m = k.match(/^(\d{4})-(\d{2})$/);
-      if (!m || !out.repaid_months[k]) return;
+      if (!m) return;
       const mm = parseInt(m[2], 10);
-      if (mm >= 1 && mm <= 12) cleaned[k] = true;
+      if (mm >= 1 && mm <= 12) cleaned[k] = !!out.repaid_months[k];
     });
     out.repaid_months = cleaned;
   }

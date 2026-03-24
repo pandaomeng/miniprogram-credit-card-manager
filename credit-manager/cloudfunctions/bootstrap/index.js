@@ -17,9 +17,7 @@ function __resetRuntime() {
   _runtime.db = db;
 }
 
-const DEMO_CARDS = [
-  
-];
+const DEMO_CARDS = [];
 
 async function ensureCollection(name) {
   try {

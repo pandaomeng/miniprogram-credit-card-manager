@@ -49,6 +49,7 @@ Page({
     ymMultiIndex: [0, 0],
     isCurrentViewMonth: true,
     repaidLineText: '本月已标记还款',
+    openSwipeId: '',
   },
 
   onLoad() {
@@ -161,45 +162,104 @@ Page({
   },
 
   async onToggleRepaid(e) {
+    if (this._updatingRepaid) return;
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    const raw = await dataStore.getCardById(id);
-    if (!raw) return;
-    const ym = normalizeYm(this.data.viewYm || currentYm());
-    const card = migrateRepaidMonths(raw);
-    const months = { ...card.repaid_months };
-    if (months[ym]) {
-      delete months[ym];
-    } else {
-      months[ym] = true;
+    this._updatingRepaid = true;
+    wx.showLoading({ title: '更新中...', mask: true });
+    try {
+      const raw = await dataStore.getCardById(id);
+      if (!raw) return;
+      const ym = normalizeYm(this.data.viewYm || currentYm());
+      const card = migrateRepaidMonths(raw);
+      const months = { ...card.repaid_months };
+      if (months[ym]) {
+        months[ym] = false;
+      } else {
+        months[ym] = true;
+      }
+      const ok = await dataStore.updateCard(id, {
+        repaid_months: months,
+      });
+      if (!ok) {
+        wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+        return;
+      }
+      await this.refresh();
+    } finally {
+      this._updatingRepaid = false;
+      wx.hideLoading();
     }
-    const ok = await dataStore.updateCard(id, {
-      repaid_months: months,
-    });
-    if (!ok) {
-      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-      return;
-    }
-    this.refresh();
   },
 
   onAdd() {
+    this._closeSwipe();
     wx.navigateTo({ url: '/pages/card-form/card-form?mode=add' });
   },
 
   onOpenCard(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
+    if (this.data.openSwipeId) {
+      if (this.data.openSwipeId === id) {
+        this._closeSwipe();
+        return;
+      }
+      this._closeSwipe();
+      return;
+    }
     const ym = encodeURIComponent(normalizeYm(this.data.viewYm || currentYm()));
     wx.navigateTo({ url: `/pages/detail/detail?id=${id}&ym=${ym}` });
   },
 
-  onLongPressCard(e) {
+  _closeSwipe() {
+    if (!this.data.openSwipeId) return;
+    this.setData({ openSwipeId: '' });
+  },
+
+  onPageTap() {
+    this._closeSwipe();
+  },
+
+  onCardTouchStart(e) {
     const { id } = e.currentTarget.dataset;
+    const touch = e.touches && e.touches[0];
+    if (!id || !touch) return;
+    this._touchCardId = id;
+    this._touchStartX = touch.pageX;
+    this._touchStartY = touch.pageY;
+    this._touchHandled = false;
+  },
+
+  onCardTouchMove(e) {
+    if (this._touchHandled) return;
+    const { id } = e.currentTarget.dataset;
+    const touch = e.touches && e.touches[0];
+    if (!id || !touch || this._touchCardId !== id) return;
+    const dx = touch.pageX - this._touchStartX;
+    const dy = touch.pageY - this._touchStartY;
+    if (Math.abs(dx) < 24 || Math.abs(dx) <= Math.abs(dy)) return;
+    this._touchHandled = true;
+    if (dx < 0) {
+      this.setData({ openSwipeId: id });
+    } else {
+      this._closeSwipe();
+    }
+  },
+
+  onCardTouchEnd() {
+    this._touchCardId = '';
+    this._touchStartX = 0;
+    this._touchStartY = 0;
+    this._touchHandled = false;
+  },
+
+  async _confirmDeleteById(id) {
     if (!id) return;
+    this._closeSwipe();
     wx.showModal({
       title: '删除信用卡',
-      content: '确定从列表中移除该卡片？本地数据将删除且不可恢复。',
+      content: '确定从列表中移除该卡片？删除后不可恢复。',
       confirmText: '删除',
       confirmColor: '#c62828',
       success: async (res) => {
@@ -213,5 +273,15 @@ Page({
         this.refresh();
       },
     });
+  },
+
+  onSwipeDelete(e) {
+    const { id } = e.currentTarget.dataset;
+    this._confirmDeleteById(id);
+  },
+
+  onLongPressCard(e) {
+    const { id } = e.currentTarget.dataset;
+    this._confirmDeleteById(id);
   },
 });

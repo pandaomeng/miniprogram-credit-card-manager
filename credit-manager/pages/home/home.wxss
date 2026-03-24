@@ -155,8 +155,47 @@
   background: #fff;
   border-radius: 20rpx;
   padding: 28rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 0;
   box-shadow: 0 8rpx 28rpx rgba(26, 26, 46, 0.06);
+}
+
+.swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 156rpx;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.swipe-delete {
+  width: 156rpx;
+  background: #e53935;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-content {
+  position: relative;
+  transform: translateX(0);
+  transition: transform 180ms ease;
+}
+
+.swipe-content.open {
+  transform: translateX(-156rpx);
 }
 
 .card-row.is-repaid {

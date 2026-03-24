@@ -4,7 +4,6 @@ const {
   currentYm,
   normalizeYm,
   ymDisplayLabel,
-  migrateRepaidMonths,
 } = require('../../utils/card-helpers.js');
 
 Page({
@@ -13,7 +12,6 @@ Page({
     viewYm: '',
     ymDisplay: '',
     isCurrentViewMonth: true,
-    repaySwitchLabel: '本月已还款',
     card: null,
   },
 
@@ -26,7 +24,6 @@ Page({
       viewYm: ym,
       ymDisplay: ymDisplayLabel(ym),
       isCurrentViewMonth,
-      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
     });
   },
 
@@ -52,36 +49,7 @@ Page({
       viewYm: ym,
       ymDisplay: ymDisplayLabel(ym),
       isCurrentViewMonth,
-      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
       card: enrichCard(raw, ym),
-    });
-  },
-
-  async onRepaidChange(e) {
-    const want = !!e.detail.value;
-    const { id, viewYm } = this.data;
-    const ym = normalizeYm(viewYm || currentYm());
-    const raw = await dataStore.getCardById(id);
-    if (!raw) return;
-    const card = migrateRepaidMonths(raw);
-    const months = { ...card.repaid_months };
-    if (want) {
-      months[ym] = true;
-    } else {
-      delete months[ym];
-    }
-    const ok = await dataStore.updateCard(id, {
-      repaid_months: months,
-    });
-    if (!ok) {
-      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
-      return;
-    }
-    const next = await dataStore.getCardById(id);
-    const isCurrentViewMonth = ym === currentYm();
-    this.setData({
-      card: enrichCard(next, ym),
-      repaySwitchLabel: isCurrentViewMonth ? '本月已还款' : `${ymDisplayLabel(ym)} 已还款`,
     });
   },
 

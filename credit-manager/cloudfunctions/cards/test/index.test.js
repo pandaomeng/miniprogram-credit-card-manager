@@ -36,14 +36,14 @@ test('cleanPatch keeps/normalizes allowed fields', () => {
     cardholder_name: '  张三  ',
     bill_day: '8',
     due_day: '20',
-    repaid_months: { '2026-03': true, bad: true, '2026-99': true },
+    repaid_months: { '2026-03': true, '2026-04': false, bad: true, '2026-99': true },
     ignored: 1,
   });
   assert.equal(out.last4, '1234');
   assert.equal(out.bill_day, 8);
   assert.equal(out.due_day, 20);
   assert.equal(out.custom_bank_name.length <= 20, true);
-  assert.deepEqual(out.repaid_months, { '2026-03': true });
+  assert.deepEqual(out.repaid_months, { '2026-03': true, '2026-04': false });
   assert.equal(Object.prototype.hasOwnProperty.call(out, 'ignored'), false);
 });
 

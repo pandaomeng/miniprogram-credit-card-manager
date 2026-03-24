@@ -83,14 +83,6 @@
   font-weight: 600;
 }
 
-.switch-row {
-  border-bottom: none;
-}
-
-.switch-row .k {
-  flex: 1;
-}
-
 .footer {
   padding: 48rpx 32rpx 0;
 }

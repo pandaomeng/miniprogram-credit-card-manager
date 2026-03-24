@@ -30,14 +30,6 @@
       <text class="k">{{isCurrentViewMonth ? '本月' : ymDisplay}}</text>
       <text class="v">已标记还款</text>
     </view>
-    <view class="row switch-row">
-      <text class="k">{{repaySwitchLabel}}</text>
-      <switch
-        checked="{{card.repaid_active}}"
-        color="#2d3a5c"
-        bindchange="onRepaidChange"
-      />
-    </view>
   </view>
 
   <view class="footer">
