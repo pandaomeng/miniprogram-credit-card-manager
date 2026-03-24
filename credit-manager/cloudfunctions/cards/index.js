@@ -66,12 +66,13 @@ async function getCard(openid, id) {
 async function createCard(openid, payload) {
   const now = _runtime.db.serverDate();
   const body = cleanPatch(payload);
-  const required = ['bank_code', 'last4', 'bill_day', 'due_day'];
+  const required = ['bank_code', 'bill_day', 'due_day'];
   const miss = required.find((k) => !body[k]);
   if (miss) throw new Error(`missing:${miss}`);
   const add = await _runtime.db.collection(CARDS).add({
     data: {
       ...body,
+      last4: body.last4 || '',
       open_id: openid,
       owner_openid: openid,
       repaid_months: body.repaid_months || {},

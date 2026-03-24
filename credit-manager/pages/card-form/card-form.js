@@ -56,10 +56,10 @@ Page({
     }
     const last4 = String(card.last4 || '')
       .replace(/\D/g, '')
-      .slice(-4)
-      .padStart(4, '0');
-    const prefix = '5'.repeat(Math.max(0, 13 - last4.length));
-    const digits = normalizeCardDigits(prefix + last4);
+      .slice(-4);
+    const digits = last4
+      ? normalizeCardDigits(`${'5'.repeat(Math.max(0, 13 - last4.length))}${last4}`)
+      : '';
     const billIndex = Math.max(0, Math.min(27, card.bill_day - 1));
     const dueIndex = Math.max(0, Math.min(27, card.due_day - 1));
 
@@ -117,7 +117,7 @@ Page({
       bankChosen &&
       !!bank_code &&
       (bank_code !== BANK_CUSTOM_CODE || (cn.length >= 1 && cn.length <= 20));
-    const cardOk = digits.length >= 13 && digits.length <= 19;
+    const cardOk = digits.length === 0 || (digits.length >= 13 && digits.length <= 19);
     const dueOk = isDueAfterBill(billDay, dueDay);
     const holderLen = (holderName || '').length;
     const holderOk = holderLen <= 20;

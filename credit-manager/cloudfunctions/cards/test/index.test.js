@@ -100,6 +100,38 @@ test('create action writes open_id/owner_openid', async () => {
   mod.__test.__resetRuntime();
 });
 
+test('create action allows empty last4', async () => {
+  let created = null;
+  const db = {
+    serverDate: () => 'NOW',
+    collection() {
+      return {
+        async add({ data }) {
+          created = data;
+          return { _id: 'id-2' };
+        },
+        where() {
+          return {
+            limit() { return this; },
+            async get() { return { data: [] }; },
+            async update() { return { stats: { updated: 1 } }; },
+            async remove() { return { stats: { removed: 1 } }; },
+          };
+        },
+        async get() { return { data: [] }; },
+      };
+    },
+  };
+  mod.__test.__setRuntime({ cloud: { getWXContext: () => ({ OPENID: 'u1' }) }, db });
+  const res = await mod.main({
+    action: 'create',
+    payload: { bank_code: 'CMB', bill_day: 5, due_day: 23 },
+  });
+  assert.equal(res.ok, true);
+  assert.equal(created.last4, '');
+  mod.__test.__resetRuntime();
+});
+
 test('a creates one card, list is visible to a and hidden from b', async () => {
   const store = [];
   const db = {
