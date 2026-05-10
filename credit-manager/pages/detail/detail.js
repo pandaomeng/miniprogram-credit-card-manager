@@ -1,4 +1,5 @@
 const dataStore = require('../../services/data-store.js');
+const bankLogo = require('../../services/bank-logo.js');
 const {
   enrichCard,
   currentYm,
@@ -45,11 +46,16 @@ Page({
     }
     const ym = normalizeYm(viewYm || currentYm());
     const isCurrentViewMonth = ym === currentYm();
+    const card = enrichCard(raw, ym);
+    const logoByCode = await bankLogo.resolveUrlsByCards([card]);
     this.setData({
       viewYm: ym,
       ymDisplay: ymDisplayLabel(ym),
       isCurrentViewMonth,
-      card: enrichCard(raw, ym),
+      card: {
+        ...card,
+        logo_path: logoByCode[card.bank_code] || '',
+      },
     });
   },
 

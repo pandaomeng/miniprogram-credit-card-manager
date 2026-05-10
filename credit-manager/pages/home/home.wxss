@@ -246,7 +246,7 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 16rpx;
-  background: #f0f2f8;
+  background: #fff;
   margin-right: 24rpx;
   flex-shrink: 0;
 }

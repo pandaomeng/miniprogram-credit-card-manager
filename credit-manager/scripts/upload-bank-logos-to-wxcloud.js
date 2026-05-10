@@ -48,6 +48,9 @@ const repoUrl = process.env.BANK_LOGO_REPO_URL || 'https://github.com/burningmys
 const tmpDir = path.resolve(PROJECT_ROOT, process.env.BANK_LOGO_TMP_DIR || '.tmp-bank-logo-repo');
 const sourceSubdir = process.env.BANK_LOGO_SOURCE_SUBDIR || 'resource/logo';
 const remotePath = process.env.BANK_LOGO_REMOTE_PATH || '/banks';
+const uploadMode = (process.env.BANK_LOGO_MODE || 'storage').toLowerCase() === 'staticstorage'
+  ? 'staticstorage'
+  : 'storage';
 const outputJson = path.resolve(PROJECT_ROOT, process.env.BANK_LOGO_OUTPUT_JSON || 'assets/bank-logo-fileids.json');
 
 function runOrThrow(cmd, args, options = {}) {
@@ -105,21 +108,21 @@ function uploadOne(filePath) {
     '-e',
     envId,
     '-m',
-    'storage',
+    uploadMode,
     '-r',
     remotePath,
   ]);
 }
 
 function uploadAll(dirPath) {
-  console.log('> 开始全量上传...');
+  console.log(`> 开始全量上传（mode=${uploadMode}）...`);
   runOrThrow('wxcloud', [
     'storage:upload',
     dirPath,
     '-e',
     envId,
     '-m',
-    'storage',
+    uploadMode,
     '-r',
     remotePath,
   ]);

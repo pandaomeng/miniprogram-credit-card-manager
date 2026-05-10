@@ -1,4 +1,5 @@
 const dataStore = require('../../services/data-store.js');
+const bankLogo = require('../../services/bank-logo.js');
 const {
   enrichCard,
   currentYm,
@@ -117,13 +118,18 @@ Page({
     const { viewYm, hideRepaid, ymDisplay, isCurrentViewMonth } = this.data;
     const ym = normalizeYm(viewYm || currentYm());
     const all = raw.map((c) => enrichCard(c, ym));
-    const cards = hideRepaid ? all.filter((c) => !c.repaid_active) : all;
+    const logoByCode = await bankLogo.resolveUrlsByCards(all);
+    const allWithLogo = all.map((c) => ({
+      ...c,
+      logo_path: logoByCode[c.bank_code] || '',
+    }));
+    const cards = hideRepaid ? allWithLogo.filter((c) => !c.repaid_active) : allWithLogo;
     const repaidLineText = isCurrentViewMonth
       ? '本月已标记还款'
       : `${ymDisplay} 已标记还款`;
     this.setData({
       cards,
-      totalCount: all.length,
+      totalCount: allWithLogo.length,
       repaidLineText,
     });
   },
