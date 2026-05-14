@@ -1,4 +1,4 @@
-const { cloudCards, cloudSettings, hasCloud } = require('./cloud-api.js');
+const { cloudCards, cloudSettings, hasDataBackend } = require('./cloud-api.js');
 
 function reportError(tag, e, extra = {}) {
   const msg = e && e.message ? e.message : String(e || 'unknown_error');
@@ -23,8 +23,8 @@ function normalizeCloudCard(doc) {
 
 const dataStore = {
   async listCards() {
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_list', 'cloud_not_ready');
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_list', 'data_backend_not_ready');
       return [];
     }
     try {
@@ -39,8 +39,8 @@ const dataStore = {
 
   async getCardById(id) {
     if (!id) return null;
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_get', 'cloud_not_ready', { id });
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_get', 'data_backend_not_ready', { id });
       return null;
     }
     try {
@@ -53,8 +53,8 @@ const dataStore = {
   },
 
   async addCard(card) {
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_create', 'cloud_not_ready');
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_create', 'data_backend_not_ready');
       return false;
     }
     try {
@@ -68,8 +68,8 @@ const dataStore = {
 
   async updateCard(id, patch) {
     if (!id) return false;
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_update', 'cloud_not_ready', { id });
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_update', 'data_backend_not_ready', { id });
       return false;
     }
     try {
@@ -82,8 +82,8 @@ const dataStore = {
 
   async deleteCard(id) {
     if (!id) return false;
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_delete', 'cloud_not_ready', { id });
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_delete', 'data_backend_not_ready', { id });
       return false;
     }
     try {
@@ -95,8 +95,8 @@ const dataStore = {
   },
 
   async getHomeSettings() {
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_settings_get', 'cloud_not_ready');
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_settings_get', 'data_backend_not_ready');
       return { hideRepaid: false, viewYm: '' };
     }
     try {
@@ -112,8 +112,8 @@ const dataStore = {
   },
 
   async setHomeSettings(patch = {}) {
-    if (!hasCloud()) {
-      reportError('cloud_not_ready_settings_set', 'cloud_not_ready', patch);
+    if (!hasDataBackend()) {
+      reportError('data_backend_not_ready_settings_set', 'data_backend_not_ready', patch);
       return false;
     }
     try {

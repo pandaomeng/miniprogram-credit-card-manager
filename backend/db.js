@@ -8,21 +8,72 @@ const [host, port] = MYSQL_ADDRESS.split(":");
 const sequelize = new Sequelize("nodejs_demo", MYSQL_USERNAME, MYSQL_PASSWORD, {
   host,
   port,
-  dialect: "mysql" /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */,
+  dialect: "mysql",
 });
 
-// 定义数据模型
-const Counter = sequelize.define("Counter", {
-  count: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 1,
+const CreditCard = sequelize.define(
+  "CreditCard",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    owner_openid: {
+      type: DataTypes.STRING(191),
+      allowNull: false,
+    },
+    bank_code: DataTypes.STRING(64),
+    custom_bank_name: DataTypes.STRING(64),
+    last4: DataTypes.STRING(8),
+    cardholder_name: DataTypes.STRING(32),
+    bill_day: DataTypes.INTEGER,
+    due_day: DataTypes.INTEGER,
+    repaid_months: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: {},
+    },
   },
-});
+  {
+    tableName: "credit_cards",
+    underscored: false,
+  }
+);
 
-// 数据库初始化方法
+const UserSetting = sequelize.define(
+  "UserSetting",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    owner_openid: {
+      type: DataTypes.STRING(191),
+      allowNull: false,
+      unique: true,
+    },
+    hideRepaid: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    viewYm: {
+      type: DataTypes.STRING(7),
+      allowNull: false,
+      defaultValue: "",
+    },
+  },
+  {
+    tableName: "user_settings",
+    underscored: false,
+  }
+);
+
 async function init() {
-  await Counter.sync({ alter: true });
+  await CreditCard.sync({ alter: true });
+  await UserSetting.sync({ alter: true });
 }
 
-export { init, Counter };
+export { init, sequelize, CreditCard, UserSetting };
