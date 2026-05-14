@@ -1,3 +1,4 @@
 .env.wx_cloud_secret_id
 .env.wx_cloud_secret_key
 .env.cloud_key
+.agents

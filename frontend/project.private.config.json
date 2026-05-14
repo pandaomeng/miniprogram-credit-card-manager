@@ -3,7 +3,7 @@
   "projectname": "credit-manager",
   "condition": {},
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,
@@ -19,7 +19,7 @@
     "ignoreDevUnusedFiles": true,
     "bigPackageSizeSupport": false,
     "useIsolateContext": true,
-    "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
+    "cloudbaseEnv": "prod-d4gfdc0xea6f1fc4c"
   },
-  "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
+  "cloudbaseEnv": "prod-d4gfdc0xea6f1fc4c"
 }

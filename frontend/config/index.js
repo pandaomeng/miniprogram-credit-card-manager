@@ -8,10 +8,10 @@
  */
 
 module.exports = {
-  cloudEnvId: 'cloud1-3ggo73sl430a5422',
+  cloudEnvId: 'prod-d4gfdc0xea6f1fc4c',
 
   /** 云托管控制台「服务管理」中的服务名称，例如 koa-8fpu；留空则不走 callContainer */
-  cloudContainerService: 'koa-8wop',
+  cloudContainerService: 'koa-ie25',
 
   /** 直连 HTTP 根地址（不要末尾 /）；与 cloudContainerService 二选一，优先 callContainer */
   apiBaseUrl: '',

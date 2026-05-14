@@ -5,9 +5,9 @@ const CODE_ALIAS = {
   PAB: 'SPABANK',
   HXB: 'HXBANK',
 };
-const DEFAULT_CLOUD_ENV_ID = 'cloud1-3ggo73sl430a5422';
+const DEFAULT_CLOUD_ENV_ID = 'prod-d4gfdc0xea6f1fc4c';
 const ENV_BUCKETS = {
-  'cloud1-3ggo73sl430a5422': '636c-cloud1-3ggo73sl430a5422-1414890388',
+  'prod-d4gfdc0xea6f1fc4c': '636c-prod-d4gfdc0xea6f1fc4c-1414890388',
 };
 const STORAGE_KEY = 'bank_logo_temp_urls_v1';
 
