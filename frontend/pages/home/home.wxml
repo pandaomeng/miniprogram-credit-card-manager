@@ -40,7 +40,7 @@
     <scroll-view class="home-list-scroll" scroll-y show-scrollbar="{{false}}" enable-back-to-top>
       <view class="home-list-inner">
         <block wx:if="{{cards.length}}">
-          <view class="swipe-wrap" wx:for="{{cards}}" wx:key="id" data-id="{{item.id}}" bindtouchstart="onCardTouchStart" bindtouchmove="onCardTouchMove" bindtouchend="onCardTouchEnd" bindtouchcancel="onCardTouchEnd">
+          <view class="swipe-wrap {{item.repaid_active ? 'swipe-wrap-repaid' : ''}} {{openSwipeId === item.id ? 'swipe-wrap-open' : ''}}" wx:for="{{cards}}" wx:key="id" data-id="{{item.id}}" bindtouchstart="onCardTouchStart" bindtouchmove="onCardTouchMove" bindtouchend="onCardTouchEnd" bindtouchcancel="onCardTouchEnd">
             <view class="swipe-actions">
               <view class="swipe-delete" catchtap="onSwipeDelete" data-id="{{item.id}}">删除</view>
             </view>

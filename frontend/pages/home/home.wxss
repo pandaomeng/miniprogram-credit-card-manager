@@ -191,10 +191,10 @@
   display: flex;
   align-items: flex-start;
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 0;
   padding: 28rpx;
   margin-bottom: 0;
-  box-shadow: 0 8rpx 28rpx rgba(26, 26, 46, 0.06);
+  box-shadow: none;
 }
 
 .swipe-wrap {
@@ -202,6 +202,13 @@
   overflow: hidden;
   border-radius: 20rpx;
   margin-bottom: 20rpx;
+  box-shadow: 0 8rpx 28rpx rgba(26, 26, 46, 0.06);
+  /* 单层圆角裁剪，避免与内层再设 radius 叠出亚像素缝 */
+  isolation: isolate;
+}
+
+.swipe-wrap-repaid {
+  box-shadow: 0 4rpx 16rpx rgba(26, 26, 46, 0.04);
 }
 
 .swipe-actions {
@@ -210,9 +217,18 @@
   right: 0;
   bottom: 0;
   width: 156rpx;
+  z-index: 0;
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.swipe-wrap-open .swipe-actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .swipe-delete {
@@ -228,8 +244,15 @@
 
 .swipe-content {
   position: relative;
-  transform: translateX(0);
+  z-index: 1;
   transition: transform 180ms ease;
+  /* 与 card-row 同色实底，圆角处不透下层删除红；圆角只交给 .swipe-wrap 裁一处 */
+  background: #fff;
+  backface-visibility: hidden;
+}
+
+.swipe-wrap-repaid .swipe-content {
+  background: #f8f9fc;
 }
 
 .swipe-content.open {
@@ -238,7 +261,7 @@
 
 .card-row.is-repaid {
   background: #f8f9fc;
-  box-shadow: 0 4rpx 16rpx rgba(26, 26, 46, 0.04);
+  box-shadow: none;
 }
 
 .repay-hit {
