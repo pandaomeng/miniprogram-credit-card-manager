@@ -46,7 +46,10 @@ function toCardJson(row) {
 export async function listCards(openid) {
   const rows = await CreditCard.findAll({
     where: { owner_openid: openid },
-    order: [["updatedAt", "DESC"]],
+    order: [
+      ["due_day", "ASC"],
+      ["id", "ASC"],
+    ],
   });
   return rows.map((r) => toCardJson(r));
 }

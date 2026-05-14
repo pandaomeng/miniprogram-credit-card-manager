@@ -169,6 +169,19 @@ function enrichCard(card, viewYm) {
   };
 }
 
+/** 列表展示：按还款日（日号）升序，同日按 id 稳定排序 */
+function sortCardsByDueDayAsc(cards) {
+  if (!Array.isArray(cards)) return [];
+  return [...cards].sort((a, b) => {
+    const da = Number(a && a.due_day);
+    const db = Number(b && b.due_day);
+    const na = Number.isFinite(da) && da >= 1 && da <= 28 ? da : 999;
+    const nb = Number.isFinite(db) && db >= 1 && db <= 28 ? db : 999;
+    if (na !== nb) return na - nb;
+    return String((a && a.id) || '').localeCompare(String((b && b.id) || ''));
+  });
+}
+
 module.exports = {
   normalizeCardDigits,
   formatCardInputDisplay,
@@ -186,4 +199,5 @@ module.exports = {
   dueDateInViewMonth,
   daysRelativeToDueInViewMonth,
   enrichCard,
+  sortCardsByDueDayAsc,
 };

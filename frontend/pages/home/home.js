@@ -6,6 +6,7 @@ const {
   normalizeYm,
   ymDisplayLabel,
   migrateRepaidMonths,
+  sortCardsByDueDayAsc,
 } = require('../../utils/card-helpers.js');
 
 const YM_PICK_START_YEAR = 2018;
@@ -121,10 +122,12 @@ Page({
     const ym = normalizeYm(viewYm || currentYm());
     const all = raw.map((c) => enrichCard(c, ym));
     const logoByCode = await bankLogo.resolveUrlsByCards(all);
-    const allWithLogo = all.map((c) => ({
-      ...c,
-      logo_path: logoByCode[c.bank_code] || '',
-    }));
+    const allWithLogo = sortCardsByDueDayAsc(
+      all.map((c) => ({
+        ...c,
+        logo_path: logoByCode[c.bank_code] || '',
+      })),
+    );
     const cards = hideRepaid ? allWithLogo.filter((c) => !c.repaid_active) : allWithLogo;
     const repaidLineText = isCurrentViewMonth
       ? '本月已标记还款'
