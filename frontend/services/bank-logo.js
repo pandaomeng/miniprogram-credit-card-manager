@@ -1,4 +1,5 @@
 const { BANK_CUSTOM_CODE } = require('../utils/banks.js');
+const appConfig = require('../config/index.js');
 
 const CODE_ALIAS = {
   BCM: 'COMM',
@@ -9,19 +10,18 @@ const DEFAULT_CLOUD_ENV_ID = 'prod-d4gfdc0xea6f1fc4c';
 const ENV_BUCKETS = {
   'prod-d4gfdc0xea6f1fc4c': '636c-prod-d4gfdc0xea6f1fc4c-1414890388',
 };
-const STORAGE_KEY = 'bank_logo_temp_urls_v1';
+const STORAGE_KEY = 'bank_logo_src_v2';
 
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const _cache = {
   at: 0,
   byCode: {},
   inited: false,
-  loggedFail: false,
-  loggedStat: false,
 };
 
-function isValidImageUrl(url) {
-  return typeof url === 'string' && /^https?:\/\//.test(url);
+/** image 的 src：支持 https 临时链，或云文件 ID cloud://（基础库 ≥2.3.0） */
+function isValidLogoSrc(s) {
+  return typeof s === 'string' && (/^https?:\/\//.test(s) || /^cloud:\/\//.test(s));
 }
 
 function normalizeCode(code) {
@@ -42,6 +42,27 @@ function getCloudEnvId() {
   return DEFAULT_CLOUD_ENV_ID;
 }
 
+function getStaticLogoBase() {
+  return String(appConfig.bankLogoStaticBaseUrl || '').trim().replace(/\/+$/, '');
+}
+
+function getStaticPathPrefix() {
+  return String(appConfig.bankLogoStaticPathPrefix || 'banks').trim().replace(/^\/+|\/+$/g, '');
+}
+
+/** 静态资源存储：一般为 https，无对象存储的 cloud:// 文件 ID，与 CLI --remotePath 一致 */
+function codeToStaticHttpsUrl(normCode) {
+  if (!normCode) return '';
+  const base = getStaticLogoBase();
+  if (!base) return '';
+  const prefix = getStaticPathPrefix();
+  return `${base}/${prefix}/${normCode}.png`;
+}
+
+/**
+ * 云托管对象存储云文件 ID（与 wx.cloud.init 的 env 一致）。
+ * image 可直接 src=cloud://…，见 image 组件文档；对象存储说明见云托管存储 API。
+ */
 function codeToFileId(code) {
   const n = normalizeCode(code);
   if (!n) return '';
@@ -81,12 +102,11 @@ function hydrateCacheOnce() {
     const raw = saved.byCode && typeof saved.byCode === 'object' ? saved.byCode : {};
     const byCode = {};
     Object.keys(raw).forEach((k) => {
-      if (isValidImageUrl(raw[k])) byCode[k] = raw[k];
+      if (isValidLogoSrc(raw[k])) byCode[k] = raw[k];
     });
     if (!at || (Date.now() - at) >= CACHE_TTL_MS) return;
     _cache.at = at;
     _cache.byCode = byCode;
-    // 清理掉历史错误缓存（如 cloud://...）
     if (Object.keys(raw).length !== Object.keys(byCode).length) {
       persistCache();
     }
@@ -100,7 +120,7 @@ function persistCache() {
     if (typeof wx === 'undefined' || typeof wx.setStorageSync !== 'function') return;
     const safe = {};
     Object.keys(_cache.byCode || {}).forEach((k) => {
-      if (isValidImageUrl(_cache.byCode[k])) safe[k] = _cache.byCode[k];
+      if (isValidLogoSrc(_cache.byCode[k])) safe[k] = _cache.byCode[k];
     });
     wx.setStorageSync(STORAGE_KEY, {
       at: _cache.at,
@@ -111,90 +131,97 @@ function persistCache() {
   }
 }
 
-async function fetchTempUrlsByFileIds(fileIds = []) {
-  if (!fileIds.length) return {};
-  if (typeof wx === 'undefined' || !wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') {
-    return {};
+/** 真机 image 支持 cloud://；开发者工具里 WebView 会把 cloud:// 当相对路径拼到页面目录，需换临时 HTTPS */
+function useCloudFileIdAsImageSrc() {
+  try {
+    if (typeof wx === 'undefined' || typeof wx.getSystemInfoSync !== 'function') return false;
+    return wx.getSystemInfoSync().platform !== 'devtools';
+  } catch (e) {
+    return false;
   }
+}
 
-  const byFileId = {};
-  const chunkSize = 50;
-  for (let i = 0; i < fileIds.length; i += chunkSize) {
-    const part = fileIds.slice(i, i + chunkSize);
-    try {
-      const res = await wx.cloud.getTempFileURL({ fileList: part });
-      const list = (res && res.fileList) || [];
-      list.forEach((item, idx) => {
-        const reqFileId = part[idx];
-        if (item && item.fileID && item.tempFileURL) {
-          if (isValidImageUrl(item.tempFileURL)) {
-            byFileId[item.fileID] = item.tempFileURL;
-            if (reqFileId) {
-              byFileId[reqFileId] = item.tempFileURL;
-            }
-          }
-        }
-      });
-      if (!_cache.loggedStat) {
-        _cache.loggedStat = true;
-        const okCount = list.filter((x) => x && isValidImageUrl(x.tempFileURL)).length;
-        console.log('[bankLogo.getTempFileURL] stats:', { request: part.length, ok: okCount });
-      }
-      // 只在出现异常项时打印一次详细日志，便于排查无法取到 tempFileURL 的根因
-      if (!_cache.loggedFail) {
-        const failed = list.filter((item) => !item || !item.tempFileURL);
-        if (failed.length) {
-          _cache.loggedFail = true;
-          console.error('[bankLogo.getTempFileURL] failed items:', failed.map((item) => ({
-            fileID: item && item.fileID,
-            status: item && item.status,
-            errMsg: item && item.errMsg,
-          })));
-        }
-      }
-    } catch (e) {
-      console.error('[bankLogo.fetchTempUrlsByFileIds] failed:', e);
+function fetchTempUrlsByFileIds(codeToFileId) {
+  const entries = Object.entries(codeToFileId).filter(([, id]) => id);
+  if (!entries.length) return Promise.resolve({});
+  const fileList = entries.map(([, fileID]) => fileID);
+  return new Promise((resolve) => {
+    if (!wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') {
+      resolve({});
+      return;
     }
-  }
-  return byFileId;
+    wx.cloud.getTempFileURL({
+      fileList,
+      success: (res) => {
+        const urlByFileId = {};
+        (res.fileList || []).forEach((item) => {
+          if (item && item.tempFileURL && item.fileID) urlByFileId[item.fileID] = item.tempFileURL;
+        });
+        const out = {};
+        entries.forEach(([code, fid]) => {
+          if (urlByFileId[fid]) out[code] = urlByFileId[fid];
+        });
+        resolve(out);
+      },
+      fail: () => resolve({}),
+    });
+  });
 }
 
 async function resolveUrlsByCodes(codes = []) {
   hydrateCacheOnce();
   const normCodes = uniqueCodes(codes);
   if (!normCodes.length) return {};
-  // cloud:// fileID -> getTempFileURL
   const out = {};
   const missCodes = [];
   const fresh = isCacheFresh();
 
+  const canUseCloudSrc = useCloudFileIdAsImageSrc();
   normCodes.forEach((code) => {
     if (fresh && _cache.byCode[code]) {
-      out[code] = _cache.byCode[code];
-      return;
+      const v = _cache.byCode[code];
+      if (canUseCloudSrc || !/^cloud:\/\//.test(v)) {
+        out[code] = v;
+        return;
+      }
     }
     missCodes.push(code);
   });
 
   if (!missCodes.length) return out;
 
-  const fileIds = missCodes
-    .map((c) => codeToFileId(c))
-    .filter(Boolean);
-  const byFileId = await fetchTempUrlsByFileIds(fileIds);
-  const fetched = {};
+  const staticBase = getStaticLogoBase();
+  if (staticBase) {
+    const fetched = {};
+    missCodes.forEach((code) => {
+      const url = codeToStaticHttpsUrl(code);
+      if (url) {
+        fetched[code] = url;
+        out[code] = url;
+      }
+    });
+    if (Object.keys(fetched).length) mergeCache(fetched);
+    return out;
+  }
+
+  const codeToFid = {};
   missCodes.forEach((code) => {
     const fileId = codeToFileId(code);
-    if (!fileId) return;
-    // 仅使用临时链接；失败时由调用方回退本地图标
-    const url = byFileId[fileId] || '';
-    if (url) {
-      fetched[code] = url;
-      out[code] = url;
-    }
+    if (fileId) codeToFid[code] = fileId;
   });
-  if (Object.keys(fetched).length) {
+  if (!Object.keys(codeToFid).length) return out;
+
+  if (canUseCloudSrc) {
+    const fetched = { ...codeToFid };
+    Object.assign(out, fetched);
     mergeCache(fetched);
+    return out;
+  }
+
+  const httpsByCode = await fetchTempUrlsByFileIds(codeToFid);
+  if (Object.keys(httpsByCode).length) {
+    Object.assign(out, httpsByCode);
+    mergeCache(httpsByCode);
   }
   return out;
 }
