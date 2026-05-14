@@ -1,0 +1,21 @@
+{
+  "name": "wxcloudrun-hono",
+  "version": "1.0.0",
+  "description": "微信云托管 Hono 框架模板",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "hono": "^4.6.0",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.13.0"
+  }
+}
