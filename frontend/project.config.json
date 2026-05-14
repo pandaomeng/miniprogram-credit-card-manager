@@ -44,8 +44,7 @@
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "swc": false,
-    "disableSWC": true,
-    "cloudbaseEnv": "prod-d4gfdc0xea6f1fc4c"
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "libVersion": "3.15.0",

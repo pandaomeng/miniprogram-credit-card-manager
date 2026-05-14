@@ -18,8 +18,6 @@
     "checkInvalidKey": true,
     "ignoreDevUnusedFiles": true,
     "bigPackageSizeSupport": false,
-    "useIsolateContext": true,
-    "cloudbaseEnv": "prod-d4gfdc0xea6f1fc4c"
-  },
-  "cloudbaseEnv": "prod-d4gfdc0xea6f1fc4c"
+    "useIsolateContext": true
+  }
 }

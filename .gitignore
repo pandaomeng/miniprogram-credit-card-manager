@@ -1,4 +1,5 @@
-.env.wx_cloud_secret_id
-.env.wx_cloud_secret_key
 .env.cloud_key
+scripts/.env.app-id
+scripts/.env.cli-key
 .agents
+scripts/node_modules
