@@ -9,32 +9,6 @@
   </view>
 
   <view class="field">
-    <text class="label">卡号（选填）</text>
-    <input
-      class="input"
-      type="text"
-      maxlength="23"
-      placeholder="选填，填写时需为 13–19 位"
-      value="{{cardInputDisplay}}"
-      bindinput="onCardInput"
-    />
-    <text class="hint-error" wx:if="{{hints.card}}">{{hints.card}}</text>
-  </view>
-
-  <view class="field">
-    <text class="label">持卡人姓名（选填）</text>
-    <input
-      class="input"
-      type="text"
-      maxlength="20"
-      placeholder="最长 20 个字符"
-      value="{{holderName}}"
-      bindinput="onHolderInput"
-    />
-    <text class="hint-error" wx:if="{{hints.holder}}">{{hints.holder}}</text>
-  </view>
-
-  <view class="field">
     <text class="label">账单日</text>
     <picker mode="selector" range="{{dayLabels}}" value="{{billIndex}}" bindchange="onBillChange">
       <view class="picker-value">每月 {{billDay}} 日</view>
@@ -47,6 +21,32 @@
       <view class="picker-value">每月 {{dueDay}} 日</view>
     </picker>
     <text class="hint-error" wx:if="{{hints.due}}">{{hints.due}}</text>
+  </view>
+
+  <view class="field">
+    <text class="label">卡号（选填）</text>
+    <input
+      class="input"
+      type="text"
+      maxlength="47"
+      placeholder="选填，仅本地用于识别后四位"
+      value="{{cardInputDisplay}}"
+      bindinput="onCardInput"
+    />
+    <text class="hint-error" wx:if="{{hints.card}}">{{hints.card}}</text>
+  </view>
+
+  <view class="field">
+    <text class="label">备注（选填）</text>
+    <input
+      class="input"
+      type="text"
+      maxlength="200"
+      placeholder="如：年费卡、副卡用途等"
+      value="{{notes}}"
+      bindinput="onNotesInput"
+    />
+    <text class="hint-error" wx:if="{{hints.notes}}">{{hints.notes}}</text>
   </view>
 
   <view class="actions">

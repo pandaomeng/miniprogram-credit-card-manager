@@ -26,9 +26,13 @@ const CreditCard = sequelize.define(
     bank_code: DataTypes.STRING(64),
     custom_bank_name: DataTypes.STRING(64),
     last4: DataTypes.STRING(8),
-    cardholder_name: DataTypes.STRING(32),
     bill_day: DataTypes.INTEGER,
     due_day: DataTypes.INTEGER,
+    notes: {
+      type: DataTypes.STRING(200),
+      allowNull: false,
+      defaultValue: "",
+    },
     repaid_months: {
       type: DataTypes.JSON,
       allowNull: false,

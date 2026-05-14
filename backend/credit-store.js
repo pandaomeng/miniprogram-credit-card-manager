@@ -11,9 +11,9 @@ export function cleanPatch(patch = {}) {
     "bank_code",
     "custom_bank_name",
     "last4",
-    "cardholder_name",
     "bill_day",
     "due_day",
+    "notes",
     "repaid_months",
   ];
   allow.forEach((k) => {
@@ -23,7 +23,7 @@ export function cleanPatch(patch = {}) {
   if (out.due_day !== undefined) out.due_day = toInt(out.due_day, 1);
   if (typeof out.last4 === "string") out.last4 = out.last4.replace(/\D/g, "").slice(-4);
   if (typeof out.custom_bank_name === "string") out.custom_bank_name = out.custom_bank_name.trim().slice(0, 20);
-  if (typeof out.cardholder_name === "string") out.cardholder_name = out.cardholder_name.trim().slice(0, 20);
+  if (typeof out.notes === "string") out.notes = out.notes.trim().slice(0, 200);
   if (out.repaid_months && typeof out.repaid_months === "object") {
     const cleaned = {};
     Object.keys(out.repaid_months).forEach((k) => {
@@ -70,6 +70,7 @@ export async function createCard(openid, payload) {
     ...body,
     owner_openid: openid,
     last4: body.last4 || "",
+    notes: typeof body.notes === "string" ? body.notes : "",
     repaid_months: body.repaid_months || {},
   });
   return row.id;

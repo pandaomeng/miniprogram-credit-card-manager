@@ -1,8 +1,12 @@
 const { byCode, BANK_CUSTOM_CODE } = require('./banks.js');
 
-/** 仅数字，最多 19 位 */
+/** 仅数字；去掉 13–19 位限制，输入侧最多保留 32 位数字以防异常长串 */
+const MAX_CARD_DIGITS = 32;
+
 function normalizeCardDigits(raw) {
-  return String(raw || '').replace(/\D/g, '').slice(0, 19);
+  return String(raw || '')
+    .replace(/\D/g, '')
+    .slice(0, MAX_CARD_DIGITS);
 }
 
 /** 展示用：每 4 位空格 */
@@ -183,6 +187,7 @@ function sortCardsByDueDayAsc(cards) {
 }
 
 module.exports = {
+  MAX_CARD_DIGITS,
   normalizeCardDigits,
   formatCardInputDisplay,
   maskLastFour,

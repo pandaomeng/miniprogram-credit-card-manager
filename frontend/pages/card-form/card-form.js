@@ -16,15 +16,15 @@ Page({
     bank_code: '',
     bankDisplayName: '',
     custom_bank_name: '',
-    cardInputDisplay: '',
-    cardDigits: '',
-    holderName: '',
     billIndex: 4,
     dueIndex: 22,
     billDay: 5,
     dueDay: 23,
     dayLabels: DAY_LABELS,
-    hints: { bank: '', card: '', holder: '', due: '' },
+    cardInputDisplay: '',
+    cardDigits: '',
+    notes: '',
+    hints: { bank: '', card: '', notes: '', due: '' },
     canSubmit: false,
   },
 
@@ -57,9 +57,7 @@ Page({
     const last4 = String(card.last4 || '')
       .replace(/\D/g, '')
       .slice(-4);
-    const digits = last4
-      ? normalizeCardDigits(`${'5'.repeat(Math.max(0, 13 - last4.length))}${last4}`)
-      : '';
+    const digits = last4 || '';
     const billIndex = Math.max(0, Math.min(27, card.bill_day - 1));
     const dueIndex = Math.max(0, Math.min(27, card.due_day - 1));
 
@@ -90,7 +88,7 @@ Page({
       custom_bank_name,
       cardDigits: digits,
       cardInputDisplay: formatCardInputDisplay(digits),
-      holderName: card.cardholder_name || '',
+      notes: card.notes || '',
       billIndex,
       dueIndex,
       billDay: billIndex + 1,
@@ -105,7 +103,7 @@ Page({
       bank_code,
       custom_bank_name,
       cardDigits,
-      holderName,
+      notes,
       billIndex,
       dueIndex,
     } = this.data;
@@ -117,27 +115,22 @@ Page({
       bankChosen &&
       !!bank_code &&
       (bank_code !== BANK_CUSTOM_CODE || (cn.length >= 1 && cn.length <= 20));
-    const cardOk = digits.length === 0 || (digits.length >= 13 && digits.length <= 19);
+    const cardOk = true;
     const dueOk = isDueAfterBill(billDay, dueDay);
-    const holderLen = (holderName || '').length;
-    const holderOk = holderLen <= 20;
+    const notesTrim = (notes || '').trim();
+    const notesOk = notesTrim.length <= 200;
 
     const hints = {
       bank: bankOk ? '' : '请选择发卡银行，或手动输入名称',
       card: '',
-      holder: holderOk ? '' : '姓名最长 20 个字符',
+      notes: notesOk ? '' : '备注最长 200 个字符',
       due: dueOk ? '' : '还款日须与账单日不同（小于账单日视为次月还款）',
     };
     if (bank_code === BANK_CUSTOM_CODE && bankChosen && cn.length > 20) {
       hints.bank = '银行名称最长 20 个字符';
     }
-    if (digits.length > 0 && digits.length < 13) {
-      hints.card = '卡号需为 13–19 位数字';
-    } else if (digits.length > 19) {
-      hints.card = '卡号最多 19 位数字';
-    }
 
-    const canSubmit = bankOk && cardOk && dueOk && holderOk;
+    const canSubmit = bankOk && cardOk && dueOk && notesOk;
     this.setData({ billDay, dueDay, hints, canSubmit });
   },
 
@@ -177,8 +170,8 @@ Page({
     this.setData({ cardDigits: digits, cardInputDisplay: display }, () => this.recompute());
   },
 
-  onHolderInput(e) {
-    this.setData({ holderName: e.detail.value }, () => this.recompute());
+  onNotesInput(e) {
+    this.setData({ notes: e.detail.value }, () => this.recompute());
   },
 
   onBillChange(e) {
@@ -202,12 +195,12 @@ Page({
       bank_code,
       custom_bank_name,
       cardDigits,
-      holderName,
+      notes,
       billIndex,
       dueIndex,
     } = this.data;
     const digits = normalizeCardDigits(cardDigits);
-    const last4 = digits.slice(-4);
+    const last4 = digits.length ? digits.slice(-4) : '';
     const payload = {
       bank_code,
       custom_bank_name:
@@ -215,7 +208,7 @@ Page({
           ? (custom_bank_name || '').trim()
           : '',
       last4,
-      cardholder_name: (holderName || '').trim(),
+      notes: (notes || '').trim(),
       bill_day: billIndex + 1,
       due_day: dueIndex + 1,
     };
