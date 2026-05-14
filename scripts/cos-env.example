@@ -1,0 +1,30 @@
+# 银行 Logo 上传到云托管「对象存储」—— 使用官方 CLI（@wxcloud/cli）
+# 文档：https://developers.weixin.qq.com/miniprogram/dev/wxcloudservice/wxcloudrun/src/guide/cli/
+#
+# 1) 在 scripts 目录安装依赖：npm install
+# 2) 在控制台「微信云托管 - 设置 - CLI 密钥」生成私钥（仅展示一次）
+# 3) 在 scripts 下创建下列单行文件（无 KEY=、无引号），或改用同名环境变量
+#
+# ---------------------------------------------------------------------------
+# 文件：.env.wx-cloud-env-id
+# 内容：一行，云托管环境 ID（与 wxcloud env:list 中 EnvId 一致）
+# 环境变量：WXCLOUD_ENV_ID 或 WX_CLOUD_ENV_ID
+# 备选：仓库根 .env.wx_cloud_env_id（单行）
+# ---------------------------------------------------------------------------
+# 文件：.env.app-id
+# 内容：一行，小程序 AppID（wx 开头）
+# 环境变量：WX_APPID 或 WX_APP_ID
+# ---------------------------------------------------------------------------
+# 文件：.env.cli-key
+# 内容：一行，CLI 登录私钥（wxcloud login --privateKey）
+# 环境变量：WXCLOUD_PRIVATE_KEY
+# ---------------------------------------------------------------------------
+# 可选文件：.env.cos-region
+# 内容：一行，如 ap-shanghai | ap-guangzhou | ap-beijing（与 wxcloud storage:upload --region 一致）
+# 环境变量：WXCLOUD_REGION；不传则 CLI 使用默认地域
+# ---------------------------------------------------------------------------
+# 仅环境变量（无对应文件）：
+#   COS_KEY_PREFIX        远端目录前缀，默认 banks（wxcloud storage:upload --remotePath）
+#   WXCLOUD_STORAGE_MODE  storage（对象存储）或 staticstorage（静态存储）；也可用命令行 --mode
+#
+# 上述 .env.* 中敏感项已在仓库根 .gitignore 中忽略，勿提交密钥。

@@ -1,5 +1,7 @@
 .env.cloud_key
 scripts/.env.app-id
 scripts/.env.cli-key
+scripts/.env.wx-cloud-env-id
+scripts/.env.cos-region
 .agents
 scripts/node_modules

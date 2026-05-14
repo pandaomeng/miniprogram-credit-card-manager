@@ -1,0 +1,14 @@
+{
+  "name": "credit-manager-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "工具脚本（微信云托管 CLI 上传等）",
+  "scripts": {
+    "upload-bank-logos-cos": "node upload-bank-logos-cos.js",
+    "upload-bank-logos-static-one": "node upload-bank-logos-cos.js --mode staticstorage --max 1",
+    "upload-bank-logos-static-all": "node upload-bank-logos-cos.js --mode staticstorage"
+  },
+  "dependencies": {
+    "@wxcloud/cli": "^2.3.3"
+  }
+}
