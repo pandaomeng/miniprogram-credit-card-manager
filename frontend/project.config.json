@@ -45,8 +45,6 @@
     "useCompilerPlugins": false,
     "swc": false,
     "disableSWC": true,
-    "cloudFunctionTemplateRoot": "cloudfunctions/",
-    "cloudbaseRoot": "cloudfunctions/",
     "cloudbaseEnv": "cloud1-3ggo73sl430a5422"
   },
   "compileType": "miniprogram",
@@ -56,6 +54,5 @@
   "condition": {},
   "simulatorPluginLibVersion": {},
   "editorSetting": {},
-  "miniprogramRoot": "./",
-  "cloudfunctionRoot": "cloudfunctions/"
+  "miniprogramRoot": "./"
 }

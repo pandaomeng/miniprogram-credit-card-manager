@@ -9,6 +9,7 @@ function getApiConfig() {
   };
 }
 
+/** 云托管 callContainer 或直连 HTTP 后端（二选一或同时配置时优先 callContainer） */
 function hasHttpApi() {
   const { baseUrl, cloudContainerService } = getApiConfig();
   return !!(baseUrl || cloudContainerService);
@@ -37,7 +38,7 @@ function parseContainerBody(raw) {
   return {};
 }
 
-function formatContainerError(statusCode, body) {
+function formatHttpError(statusCode, body) {
   if (body && typeof body === 'object') {
     const code = body.code || body.error;
     const msg = body.message || body.error;
@@ -46,12 +47,12 @@ function formatContainerError(statusCode, body) {
       if (parts.length) return parts.join(': ');
     }
   }
-  return `container_http_${statusCode}`;
+  return `http_${statusCode}`;
 }
 
 /**
- * 微信云托管：走 callContainer 才会带 x-wx-openid。
- * INVALID_HOST 等为 CloudBase 网关错误，见 config/index.js 顶部说明。
+ * 微信云托管：callContainer 携带 x-wx-openid。
+ * INVALID_HOST 等为网关错误，见 config/index.js 顶部说明。
  */
 function containerRequest(method, path, data) {
   const { cloudContainerService, cloudEnvId } = getApiConfig();
@@ -84,7 +85,7 @@ function containerRequest(method, path, data) {
           resolve(body);
           return;
         }
-        reject(new Error(formatContainerError(statusCode, body)));
+        reject(new Error(formatHttpError(statusCode, body)));
       },
       fail(err) {
         reject(err && err.errMsg ? new Error(err.errMsg) : new Error('callContainer_failed'));
@@ -93,12 +94,8 @@ function containerRequest(method, path, data) {
   });
 }
 
-function hasCloud() {
-  return !!(wx && wx.cloud && typeof wx.cloud.callFunction === 'function');
-}
-
 function hasDataBackend() {
-  return hasHttpApi() || hasCloud();
+  return hasHttpApi();
 }
 
 function httpRequest(method, path, data) {
@@ -131,7 +128,7 @@ function httpRequest(method, path, data) {
           resolve(body);
           return;
         }
-        reject(new Error(body.error || formatContainerError(res.statusCode, body)));
+        reject(new Error(body.error || formatHttpError(res.statusCode, body)));
       },
       fail(err) {
         reject(err && err.errMsg ? new Error(err.errMsg) : new Error('wx_request_failed'));
@@ -140,88 +137,46 @@ function httpRequest(method, path, data) {
   });
 }
 
-async function callCloud(name, data = {}) {
-  if (!hasCloud()) {
-    throw new Error('cloud_not_ready');
-  }
-  const res = await wx.cloud.callFunction({ name, data });
-  const result = res && res.result ? res.result : {};
-  if (!result.ok) {
-    throw new Error(result.error || 'cloud_call_failed');
-  }
-  return result;
-}
-
 const cloudCards = {
   async list() {
-    if (hasHttpApi()) {
-      const r = await httpRequest('GET', '/api/cards');
-      return r.data || [];
-    }
-    const r = await callCloud('cards', { action: 'list' });
+    const r = await httpRequest('GET', '/api/cards');
     return r.data || [];
   },
   async get(id) {
-    if (hasHttpApi()) {
-      const enc = encodeURIComponent(id);
-      const r = await httpRequest('GET', `/api/cards/${enc}`);
-      return r.data || null;
-    }
-    const r = await callCloud('cards', { action: 'get', id });
+    const enc = encodeURIComponent(id);
+    const r = await httpRequest('GET', `/api/cards/${enc}`);
     return r.data || null;
   },
   async create(payload) {
-    if (hasHttpApi()) {
-      const r = await httpRequest('POST', '/api/cards', payload);
-      return r.id;
-    }
-    const r = await callCloud('cards', { action: 'create', payload });
+    const r = await httpRequest('POST', '/api/cards', payload);
     return r.id;
   },
   async update(id, patch) {
-    if (hasHttpApi()) {
-      const enc = encodeURIComponent(id);
-      const r = await httpRequest('PATCH', `/api/cards/${enc}`, patch);
-      return !!r.ok;
-    }
-    const r = await callCloud('cards', { action: 'update', id, patch });
+    const enc = encodeURIComponent(id);
+    const r = await httpRequest('PATCH', `/api/cards/${enc}`, patch);
     return !!r.ok;
   },
   async remove(id) {
-    if (hasHttpApi()) {
-      const enc = encodeURIComponent(id);
-      const r = await httpRequest('DELETE', `/api/cards/${enc}`);
-      return !!r.ok;
-    }
-    const r = await callCloud('cards', { action: 'delete', id });
+    const enc = encodeURIComponent(id);
+    const r = await httpRequest('DELETE', `/api/cards/${enc}`);
     return !!r.ok;
   },
 };
 
 const cloudSettings = {
   async get() {
-    if (hasHttpApi()) {
-      const r = await httpRequest('GET', '/api/settings');
-      return r.data || { hideRepaid: false, viewYm: '' };
-    }
-    const r = await callCloud('settings', { action: 'get' });
+    const r = await httpRequest('GET', '/api/settings');
     return r.data || { hideRepaid: false, viewYm: '' };
   },
   async set(payload) {
-    if (hasHttpApi()) {
-      const r = await httpRequest('PATCH', '/api/settings', payload);
-      return !!r.ok;
-    }
-    const r = await callCloud('settings', { action: 'set', payload });
+    const r = await httpRequest('PATCH', '/api/settings', payload);
     return !!r.ok;
   },
 };
 
 module.exports = {
-  hasCloud,
   hasHttpApi,
   hasDataBackend,
-  call: callCloud,
   cloudCards,
   cloudSettings,
 };

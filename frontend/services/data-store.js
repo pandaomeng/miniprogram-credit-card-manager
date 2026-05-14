@@ -32,7 +32,7 @@ const dataStore = {
       console.log('[cloudCards.list] ok, count=', Array.isArray(list) ? list.length : 0);
       return (Array.isArray(list) ? list : []).map(normalizeCloudCard);
     } catch (e) {
-      reportError('cloud_cards_list_failed', e);
+      reportError('api_cards_list_failed', e);
       return [];
     }
   },
@@ -47,7 +47,7 @@ const dataStore = {
       const card = await cloudCards.get(id);
       return normalizeCloudCard(card);
     } catch (e) {
-      reportError('cloud_cards_get_failed', e, { id });
+      reportError('api_cards_get_failed', e, { id });
       return null;
     }
   },
@@ -61,7 +61,7 @@ const dataStore = {
       await cloudCards.create(card);
       return true;
     } catch (e) {
-      reportError('cloud_cards_create_failed', e);
+      reportError('api_cards_create_failed', e);
       return false;
     }
   },
@@ -75,7 +75,7 @@ const dataStore = {
     try {
       return await cloudCards.update(id, patch);
     } catch (e) {
-      reportError('cloud_cards_update_failed', e, { id });
+      reportError('api_cards_update_failed', e, { id });
       return false;
     }
   },
@@ -89,7 +89,7 @@ const dataStore = {
     try {
       return await cloudCards.remove(id);
     } catch (e) {
-      reportError('cloud_cards_delete_failed', e, { id });
+      reportError('api_cards_delete_failed', e, { id });
       return false;
     }
   },
@@ -106,7 +106,7 @@ const dataStore = {
         viewYm: data.viewYm || '',
       };
     } catch (e) {
-      reportError('cloud_settings_get_failed', e);
+      reportError('api_settings_get_failed', e);
       return { hideRepaid: false, viewYm: '' };
     }
   },
@@ -119,7 +119,7 @@ const dataStore = {
     try {
       return await cloudSettings.set(patch);
     } catch (e) {
-      reportError('cloud_settings_set_failed', e, patch);
+      reportError('api_settings_set_failed', e, patch);
       return false;
     }
   },

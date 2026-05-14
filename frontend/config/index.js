@@ -1,5 +1,5 @@
 /**
- * 可调参数集中在此。修改后需与微信开发者工具里「云环境」、云托管控制台一致。
+ * 可调参数集中在此。数据读写仅通过云托管（callContainer）或直连 HTTP，不再使用云函数。
  *
  * INVALID_HOST（callContainer 返回 404 + data.code）常见原因：
  * - cloudEnvId 不是该云托管服务所在的环境 ID（须与 wx.cloud.init 的 env 一致）
@@ -18,6 +18,4 @@ module.exports = {
 
   /** 仅配合 apiBaseUrl 本地调试 */
   devOpenid: '',
-
-  enableBootstrapOnLaunch: true,
 };

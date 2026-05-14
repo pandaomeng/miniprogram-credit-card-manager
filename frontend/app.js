@@ -7,17 +7,6 @@ App({
         env: appConfig.cloudEnvId,
         traceUser: true,
       });
-
-      if (appConfig.enableBootstrapOnLaunch) {
-        wx.cloud
-          .callFunction({
-            name: 'bootstrap',
-            data: { withDemo: true },
-          })
-          .catch((e) => {
-            console.error('[bootstrap] failed:', e);
-          });
-      }
     }
   },
   globalData: {

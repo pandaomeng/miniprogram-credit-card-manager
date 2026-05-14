@@ -3,6 +3,5 @@
   "framework": {
     "name": "credit-manager",
     "plugins": {}
-  },
-  "functionRoot": "cloudfunctions"
+  }
 }
