@@ -5,13 +5,16 @@
       type="text"
       placeholder="搜索银行名称或代码（如 招商、CMB）"
       value="{{keyword}}"
+      confirm-type="done"
       bindinput="onSearchInput"
-      confirm-type="search"
+      bindconfirm="onSearchConfirm"
     />
   </view>
 
   <scroll-view scroll-y class="list" show-scrollbar="{{false}}">
-    <view wx:if="{{list.length === 0}}" class="empty-hint">无匹配结果，可在底部手动输入银行名称</view>
+    <view wx:if="{{list.length === 0 && keywordTrim}}" class="empty-hint">
+      无匹配结果，点键盘「完成」或下方按钮返回并保存该名称
+    </view>
     <view
       class="bank-item"
       wx:for="{{list}}"
@@ -25,20 +28,7 @@
     </view>
   </scroll-view>
 
-  <view class="footer">
-    <view class="custom-bar" bindtap="toggleCustom">
-      <text>{{showCustomPanel ? '收起手动输入' : '找不到银行？手动输入名称'}}</text>
-    </view>
-    <view class="custom-panel" wx:if="{{showCustomPanel}}">
-      <input
-        class="custom-input"
-        type="text"
-        maxlength="20"
-        placeholder="请输入发卡银行名称（1–20 字）"
-        value="{{customName}}"
-        bindinput="onCustomInput"
-      />
-      <view class="btn-confirm" bindtap="onConfirmCustom">使用此名称</view>
-    </view>
+  <view class="confirm-footer" wx:if="{{list.length === 0 && keywordTrim}}">
+    <view class="btn-confirm" catchtap="onSearchConfirm">确认并返回</view>
   </view>
 </view>

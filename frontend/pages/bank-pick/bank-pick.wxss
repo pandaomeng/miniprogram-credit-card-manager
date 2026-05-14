@@ -24,7 +24,7 @@
 .list {
   flex: 1;
   height: 0;
-  padding: 0 24rpx;
+  padding: 0 24rpx 16rpx;
   box-sizing: border-box;
 }
 
@@ -59,39 +59,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-.footer {
+.confirm-footer {
   flex-shrink: 0;
-  padding: 16rpx 24rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
   background: #fff;
   border-top: 2rpx solid #eee;
-}
-
-.custom-bar {
-  text-align: center;
-  font-size: 28rpx;
-  color: #2d3a5c;
-  padding: 16rpx 0;
-}
-
-.custom-panel {
-  margin-top: 8rpx;
-}
-
-.custom-input {
-  height: 88rpx;
-  padding: 0 24rpx;
-  background: #f5f6fa;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  margin-bottom: 20rpx;
-  box-sizing: border-box;
 }
 
 .btn-confirm {
   height: 88rpx;
   line-height: 88rpx;
   text-align: center;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: #fff;

@@ -121,7 +121,7 @@ Page({
     const notesOk = notesTrim.length <= 200;
 
     const hints = {
-      bank: bankOk ? '' : '请选择发卡银行，或手动输入名称',
+      bank: bankOk ? '' : '请选择发卡银行',
       card: '',
       notes: notesOk ? '' : '备注最长 200 个字符',
       due: dueOk ? '' : '还款日须与账单日不同（小于账单日视为次月还款）',

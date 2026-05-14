@@ -1,4 +1,4 @@
-/** 非列表银行：手动输入名称时使用，主题色用于详情页 */
+/** 非列表银行：自定义名称时使用，主题色用于详情页 */
 const BANK_CUSTOM_CODE = 'CUSTOM';
 
 const CUSTOM_BANK_META = {
