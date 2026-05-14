@@ -1,0 +1,41 @@
+# 本地一键启动：API + MySQL
+# 用法：在 backend 目录执行  docker compose up --build -d
+# 小程序联调：apiBaseUrl 填 http://<本机局域网IP>:3000 ，并配置 devOpenid
+
+name: credit-manager-backend
+
+services:
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: devpass
+      MYSQL_DATABASE: nodejs_demo
+    ports:
+      - "3307:3306"
+    volumes:
+      - cm_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pdevpass"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      PORT: "80"
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: devpass
+      MYSQL_ADDRESS: mysql:3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  cm_mysql_data:
